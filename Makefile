@@ -11,7 +11,7 @@
 # **************************************************************************** #
 NAME		=	ircserv
 CC			=	c++
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -I inc/
+CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
 SRCS		=	main.cpp Server.cpp
