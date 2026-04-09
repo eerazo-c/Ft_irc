@@ -30,56 +30,37 @@ int main(int ar, char const *argv[])
     // prueba abriendo un socket  cliente
     //AF_INET = IPv4  , AF_INET6 = IPv6
     // SOCK_STREAM = TCP, SOCK_DGRAM = UDP
-    int socket_t = socket(AF_INET, SOCK_STREAM , 0);
+    int socket_t = socket(AF_INET, SOCK_STREAM, 0); // renombar a serversocket despues del test
     if (socket_t < 0)
     {
         std::cerr << "Error al crear el socket" << std::endl;
         return 1;
     }
 
-    struct sockaddr_in server_data;
-    std::memset(&server_data, 0, sizeof(server_data));
-    server_data.sin_family = AF_INET;
-    server_data.sin_port = htons(std::atoi(argv[1])); //htons transforma un int a una networkbite (orden de bytes)
-    if (inet_pton(AF_INET, "127.0.0.1", &server_data.sin_addr) <= 0) //inet_pton convierte  char* de la ip a una direcion de red 
-    {
-        std::cerr << "Dirección IP inválida" << std::endl;
-        return 1;
-    }
+    struct sockaddr_in server_address;
+    std::memset(&server_address, 0, sizeof(server_address));
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY; // Escuchar en cualquier IP de esta PC
+    server_address.sin_port = htons(std::atoi(argv[1]));//htons transforma un int a una networkbite (orden de bytes)
+
     // sockaddr vs sockaddr_in
     // sockaddr es una struct generica  que esperan recibir un protocolo ipv4, ipv6 , etc.
     // sockaddr_in  struct para ipv4 donde podemos añadir ip y puerto
-    //  hacemos cast de sockaddr_in a sockaddr porque lo pide la funcion connect()
-    if (connect(socket_t, (struct sockaddr *)&server_data, sizeof(server_data)) < 0)
-     {
-        std::cerr << "Conexión fallida" << std::endl;
-        close(socket_t);
-        return 1;
+    //  hacemos cast de sockaddr_in a sockaddr porque lo pide la funcion concreta
+
+    // Atar el socket al puerto pasado por parametro   ej 8080
+    if (bind(socket_t, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+    {
+        std::cerr << "Error in bind;" << std::endl;
     }
-    std::cout << "¡Conectado exitosamente!" << std::endl;
-    close(socket_t);
-    // fin de la prueba
-   
-
-    // server
-
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     
-    struct sockaddr_in address;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY; // Escuchar en cualquier IP de esta PC
-    address.sin_port = htons(8080);
-
-    // Atar el socket al puerto 8080
-    bind(server_fd, (struct sockaddr *)&address, sizeof(address));
-
     // Ponerse a escuchar (máximo 3 personas en fila)
-    listen(server_fd, 3);
+    listen(socket_t, 3);
     std::cout << "Esperando cliente..." << std::endl;
 
-    // Aceptar la llamada (esto bloquea el programa hasta que alguien se conecta)
-    int addrlen = sizeof(address);
-    int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+     // Aceptar la llamada (esto bloquea el programa hasta que alguien se conecta)
+    int addrlen = sizeof(server_address);
+    int new_socket = accept(socket_t, (struct sockaddr *)&server_address, (socklen_t*)&addrlen);
 
     std::cout << "¡Cliente conectado!" << std::endl;
 
@@ -89,14 +70,7 @@ int main(int ar, char const *argv[])
     std::cout << "Mensaje recibido: " << buffer << std::endl;
 
     close(new_socket);
-    close(server_fd);
-
-
-
-
-
-
-    
+    close(socket_t);
 
     return 0;
 }
