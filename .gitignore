@@ -1,2 +1,7 @@
 obj/
 .vscode
+ircserv
+*.o
+*.out
+*.d
+*.swp
