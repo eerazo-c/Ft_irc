@@ -91,6 +91,7 @@ int main(int ar, char const *argv[])
          std::cout << "Conexion con cliente cerrada. Volviendo a escuchar..." << std::endl;
     }
     
+    
 
     // char buffer[1024] = {0};
     // if (recv(new_socket, buffer, 1024, 0))
