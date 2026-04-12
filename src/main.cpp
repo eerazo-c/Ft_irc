@@ -62,27 +62,45 @@ int main(int ar, char const *argv[])
         return 1;
     }
     std::cout << "Esperando cliente..." << std::endl;
+    std::cout << "Servidor escuchando en el puerto "<< in_port << std::endl;
+    
 
-     // Aceptar la llamada (esto bloquea el programa hasta que alguien se conecta)
-    int addrlen = sizeof(server_address);
-    int new_socket = accept(socket_t, (struct sockaddr *)&server_address, (socklen_t*)&addrlen);
-    if (new_socket  < 0)
+    while (true)
     {
-        std::cerr << "Error in accept" << std::endl;
-        return 1;
-    }
-    std::cout << "¡Cliente conectado!" << std::endl;
+        struct sockaddr_in client_address;
+        socklen_t client_leng = sizeof(client_address);   
+        
+        std::cout << "Waiting for the conextion" << std::endl;
+        int new_client_socket = accept(socket_t,(struct sockaddr*) &client_address, &client_leng);
+        if (new_client_socket < 0)
+        {
+            std::cerr << "Error al aceptar el cliente" << std::endl;
+            continue;
+        }
+        std::cout << "Cliente conectado desde: " << inet_ntoa(client_address.sin_addr) << std::endl;
+        char buffer[1024];
+        std::memset(buffer, 0, sizeof(buffer));
+        if (recv(new_client_socket, buffer, 1024, 0) > 0)
+        {
+            std::cout << "Mensage recivido: " << buffer <<std::endl;
 
-    // Leer lo que mandó el cliente
-    char buffer[1024] = {0};
-    if (recv(new_socket, buffer, 1024, 0))
-    {
-        std::cerr << "Error in recv" << std::endl;
-        return 1;
+            const char* respuesta = "Mensaje recibido correctamente";
+            send(new_client_socket, respuesta, std::strlen(respuesta), 0);
+        }
+        close(new_client_socket);
+         std::cout << "Conexion con cliente cerrada. Volviendo a escuchar..." << std::endl;
     }
-    std::cout << "Mensaje recibido: " << buffer << std::endl;
+    
 
-    close(new_socket);
+    // char buffer[1024] = {0};
+    // if (recv(new_socket, buffer, 1024, 0))
+    // {
+    //     std::cerr << "Error in recv" << std::endl;
+    //     return 1;
+    // }
+    // std::cout << "Mensaje recibido: " << buffer << std::endl;
+
+ 
     close(socket_t);
 
     return 0;

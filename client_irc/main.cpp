@@ -1,5 +1,6 @@
 #include "header.h"
 
+void send_irc_cmd(int sock, std::string cmd);
 int main(int ar , char**argv)
 {
 	if (ar !=3)
@@ -70,7 +71,8 @@ int main(int ar , char**argv)
 	return 0;
 } 
 
-void send_irc_cmd(int sock, std::string cmd) {
+void send_irc_cmd(int sock, std::string cmd) 
+{
     cmd += "\r\n";
     if (send(sock, cmd.c_str(), cmd.length(), 0) < 0) {
         std::cerr << "Error al enviar comando" << std::endl;
