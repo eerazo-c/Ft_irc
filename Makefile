@@ -11,17 +11,10 @@
 # **************************************************************************** #
 NAME		=	ircserv
 CC			=	c++
-<<<<<<< HEAD
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
 SRCS		=	main.cpp Server.cpp
-=======
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -I inc/
-OBJDIR		=	build
-SRCSDIR		=	src
-SRCS		=	main.cpp 
->>>>>>> main
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
 
