@@ -53,10 +53,7 @@
 
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */    
 
-
 //std::cout << RED << "hello world" << RESET << std::endl;                                                      
 //Note: If you don't use RESET the color will remain changed until the next time you use a color code.     
-
-
 
 #endif

@@ -107,18 +107,12 @@ int main(int ar, char const *argv[])
                     // Cliente desconectado
                     close(client_fd);
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-                    std::cout << "Cliente desconectado." << std::endl;
+                    std::cout << YELLOW << "Cliente desconectado." << std::endl;
                 } else {
-                    std::cout << "Recibido: " << buffer << std::endl;
+                    std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
                     send(client_fd, "OK", 2, 0);
                 }
             }
-        
-        
-    
-       
-       
-       
         //      SIN USAR EPOLL()  NO VALE  YA QUE EL SUBJECT DICE QUE LO TIENE QUE USAR EL EPOLL o POLL
         // struct sockaddr_in client_address;
         // socklen_t client_leng = sizeof(client_address);   
