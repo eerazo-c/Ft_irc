@@ -1,4 +1,4 @@
-#include "header_client.h"
+#include "header_client.hpp"
 
 
 void send_irc_cmd(int sock, const std::string &cmd)

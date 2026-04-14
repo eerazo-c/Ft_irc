@@ -1,7 +1,7 @@
-NAME = client_irc
+NAME = client_irc.out
 
 SRC = main.cpp 
-HDR = header.h
+HDR = header_client.h
 CC = c++
 FLAGS = -Wall -Wextra -Werror -std=c++98 -ggdb
 RM = rm -rf
