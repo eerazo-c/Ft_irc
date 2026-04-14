@@ -8,12 +8,12 @@
 class Server
 {
     private:
-        int _port_s;
+     /*   int _port_s;
         std::string  _password;
         int _server_socket;
         struct sockaddr_in _server_address;
         
-
+    */
     public:
         Server();
         Server(const Server &to_copy);

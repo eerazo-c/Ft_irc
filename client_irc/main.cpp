@@ -1,83 +1,125 @@
-#include "header.h"
+#include "header_client.h"
 
-void send_irc_cmd(int sock, std::string cmd);
 
-int main(int ar , char**argv)
+void send_irc_cmd(int sock, const std::string &cmd)
 {
-	if (ar !=3)
-    {
-        std::cout << "ERROR: Invalid Arguments" <<
-        std::endl << "usage: /ircserv <port> <password>" << std::endl;
-        return 0;
-    }
-    std::cout << "Todo bien jeje" << std::endl;
-    std::string in_port (argv[1]);
-    std::string in_password (argv[2]);
-	//aqui empieza el cliente
-	
- //AF_INET = IPv4  , AF_INET6 = IPv6
-    // SOCK_STREAM = TCP, SOCK_DGRAM = UDP
-    int socket_t = socket(AF_INET, SOCK_STREAM , 0);
-    if (socket_t < 0)
-    {
-        std::cerr << "Error al crear el socket" << std::endl;
-        return 1;
-    }
-
-    struct sockaddr_in server_data;
-    std::memset(&server_data, 0, sizeof(server_data));
-    server_data.sin_family = AF_INET;
-    server_data.sin_port = htons(std::atoi(argv[1])); //htons transforma un int a una networkbite (orden de bytes)
-    if (inet_pton(AF_INET, "127.0.0.1", &server_data.sin_addr) <= 0) //inet_pton convierte  char* de la ip a una direcion de red 
-    {
-        std::cerr << "Dirección IP inválida" << std::endl;
-        return 1;
-    }
-    // sockaddr vs sockaddr_in
-    // sockaddr es una struct generica  que esperan recibir un protocolo ipv4, ipv6 , etc.
-    // sockaddr_in  struct para ipv4 donde podemos añadir ip y puerto
-    //  hacemos cast de sockaddr_in a sockaddr porque lo pide la funcion connect()
-    if (connect(socket_t, (struct sockaddr *)&server_data, sizeof(server_data)) < 0)
-     {
-        std::cerr << "Conexión fallida" << std::endl;
-        close(socket_t);
-        return 1;
-    }
-    std::cout << "¡Conectado exitosamente!" << std::endl;
-
-		// 1. Definir los comandos (IRC requiere que terminen en \r\n)
-		std::string pass_cmd = "PASS " + in_password + "\r\n";
-		std::string nick_cmd = "NICK mi_bot\r\n";
-		std::string user_cmd = "USER guest 0 * :Soy un cliente\r\n";
-		std::string msg_cmd  = "PRIVMSG #canal_test :Hola desde mi cliente C++\r\n";
-
-        std::string msg_cmd3 (in_password);
-		// 2. Enviar los datos con send()
-		// ssize_t send(int sockfd, const void *buf, size_t len, int flags);
-
-        send_irc_cmd(socket_t, msg_cmd3);
-		//send_irc_cmd(socket_t, pass_cmd);
-		//send_irc_cmd(socket_t, nick_cmd);
-		//send_irc_cmd(socket_t, user_cmd);
-	
-		// Esperar un poco o entrar en un bucle de lectura antes de enviar el mensaje
-		// para asegurar que el servidor nos ha aceptado.
-		sleep(10); 
-
-		//send(socket_t, msg_cmd.c_str(), msg_cmd.length(), 0);
-
-		std::cout << "Mensajes enviados." << std::endl;
-
-
-    close(socket_t);
-	
-	return 0;
-} 
-
-void send_irc_cmd(int sock, std::string cmd) 
-{
-    cmd += "\r\n";
-    if (send(sock, cmd.c_str(), cmd.length(), 0) < 0) {
+    std::string full_cmd = cmd + "\r\n";
+    if (send(sock, full_cmd.c_str(), full_cmd.length(), 0) < 0)
         std::cerr << "Error al enviar comando" << std::endl;
+    else
+        std::cout << ">> " << cmd << std::endl;
+}
+
+void handle_server_msg(int sock, std::string buffer)
+{
+    std::cout << "<< " << buffer;
+
+    // Responder a PING automáticamente
+    if (buffer.find("PING") == 0)
+    {
+        std::string token = buffer.substr(5); // después de "PING "
+        send_irc_cmd(sock, "PONG " + token);
     }
-}  
+}
+
+int main(int ac, char **av)
+{
+    if (ac != 3)
+    {
+        std::cout << "Uso: ./irc_client <port> <password>" << std::endl;
+        return 1;
+    }
+
+    int port = std::atoi(av[1]);
+    std::string password = av[2];
+
+    // Crear socket
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0)
+    {
+        std::cerr << "Error al crear socket" << std::endl;
+        return 1;
+    }
+
+    // Configurar dirección
+    struct sockaddr_in server;
+    std::memset(&server, 0, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &server.sin_addr) <= 0)
+    {
+        std::cerr << "IP inválida" << std::endl;
+        return 1;
+    }
+
+    // Conectar
+    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+        std::cerr << "Error al conectar" << std::endl;
+        return 1;
+    }
+
+    std::cout << "Conectado al servidor IRC" << std::endl;
+
+    // Registro IRC correcto
+    send_irc_cmd(sock, "PASS " + password);
+    send_irc_cmd(sock, "NICK mi_bot");
+    send_irc_cmd(sock, "USER guest 0 * :Soy un cliente");
+
+    sleep(1);
+
+    // Unirse a canal
+    send_irc_cmd(sock, "JOIN #canal_test");
+
+    sleep(1);
+
+    // Enviar mensaje inicial
+    send_irc_cmd(sock, "PRIVMSG #canal_test :Hola desde cliente tester");
+
+    // Loop principal (leer servidor + stdin)
+    fd_set fds;
+    char buffer[512];
+
+    while (true)
+    {
+        FD_ZERO(&fds);
+        FD_SET(sock, &fds);
+        FD_SET(0, &fds); // stdin
+
+        int maxfd = sock;
+
+        if (select(maxfd + 1, &fds, NULL, NULL, NULL) < 0)
+        {
+            std::cerr << "Error en select" << std::endl;
+            break;
+        }
+
+        // Mensaje del servidor
+        if (FD_ISSET(sock, &fds))
+        {
+            int bytes = recv(sock, buffer, sizeof(buffer) - 1, 0);
+            if (bytes <= 0)
+            {
+                std::cout << "Desconectado del servidor" << std::endl;
+                break;
+            }
+            buffer[bytes] = '\0';
+            handle_server_msg(sock, buffer);
+        }
+
+        // Input del usuario
+        if (FD_ISSET(0, &fds))
+        {
+            std::string input;
+            if (!std::getline(std::cin, input))
+                break;
+
+            if (!input.empty())
+                send_irc_cmd(sock, input);
+        }
+    }
+
+    close(sock);
+    return 0;
+}

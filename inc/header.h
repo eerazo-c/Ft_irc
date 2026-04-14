@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include <string>
+#include <cerrno>
 
 #include <exception>
-
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/epoll.h>
@@ -18,6 +20,11 @@
 #include <vector>
 #include <map>
 #include <list>
+
+#define MAX_CONECTIONS 10
+
+
+
 
 #define RESET   "\033[0m"
 
