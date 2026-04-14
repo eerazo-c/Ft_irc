@@ -1,8 +1,6 @@
 #include "../inc/header.h"
 #include "../inc/Server.h"
 
-
-
 int main(int ar, char const *argv[])
 {
     if (ar !=3)
@@ -14,9 +12,7 @@ int main(int ar, char const *argv[])
     std::cout << "Todo bien jeje" << std::endl;
     std::string in_port (argv[1]);
     std::string in_password (argv[2]);
-
     //Server main_server(in_port, in_password);
-
 
     //TODO 
     // crear socket
@@ -103,12 +99,15 @@ int main(int ar, char const *argv[])
                 char buffer[1024] = {0};
                 int bytes = recv(client_fd, buffer, 1024, 0);
 
-                if (bytes <= 0) {
+                if (bytes <= 0)
+                {
                     // Cliente desconectado
                     close(client_fd);
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-                    std::cout << YELLOW << "Cliente desconectado." << std::endl;
-                } else {
+                    std::cout << YELLOW << "Cliente desconectado." << RESET << std::endl;
+                } 
+                else
+                {
                     std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
                     send(client_fd, "OK", 2, 0);
                 }
@@ -140,6 +139,5 @@ int main(int ar, char const *argv[])
         }
     }
     close(socket_t);
-
     return 0;
 }

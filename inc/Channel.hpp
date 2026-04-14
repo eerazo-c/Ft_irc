@@ -22,3 +22,5 @@ class Channel {
 	Channel();
 	~Channel();
 };
+
+#endif

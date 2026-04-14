@@ -6,7 +6,7 @@
 #    By: elerazo- <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/07 13:27:33 by elerazo-          #+#    #+#              #
-#    Updated: 2026/02/07 20:38:26 by elerazo          ###   ########.fr        #
+#    Updated: 2026/04/14 15:52:11 by israetor         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 NAME		=	ircserv
@@ -59,8 +59,4 @@ re:    fclean all
 
 -include $(DEPS)
 
-<<<<<<< HEAD
 .PHONY: all banner clean fclean re
-=======
-.PHONY: all banner clean fclean re
->>>>>>> main

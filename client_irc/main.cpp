@@ -1,6 +1,7 @@
 #include "header.h"
 
 void send_irc_cmd(int sock, std::string cmd);
+
 int main(int ar , char**argv)
 {
 	if (ar !=3)
@@ -50,18 +51,20 @@ int main(int ar , char**argv)
 		std::string user_cmd = "USER guest 0 * :Soy un cliente\r\n";
 		std::string msg_cmd  = "PRIVMSG #canal_test :Hola desde mi cliente C++\r\n";
 
+        std::string msg_cmd3 (in_password);
 		// 2. Enviar los datos con send()
 		// ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 
-		send_irc_cmd(socket_t, pass_cmd);
-		send_irc_cmd(socket_t, nick_cmd);
-		send_irc_cmd(socket_t, user_cmd);
+        send_irc_cmd(socket_t, msg_cmd3);
+		//send_irc_cmd(socket_t, pass_cmd);
+		//send_irc_cmd(socket_t, nick_cmd);
+		//send_irc_cmd(socket_t, user_cmd);
 	
 		// Esperar un poco o entrar en un bucle de lectura antes de enviar el mensaje
 		// para asegurar que el servidor nos ha aceptado.
-		sleep(1); 
+		sleep(10); 
 
-		send(socket_t, msg_cmd.c_str(), msg_cmd.length(), 0);
+		//send(socket_t, msg_cmd.c_str(), msg_cmd.length(), 0);
 
 		std::cout << "Mensajes enviados." << std::endl;
 
