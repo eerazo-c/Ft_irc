@@ -70,12 +70,12 @@ int main(int ac, char **av)
     sleep(1);
 
     // Unirse a canal
-    send_irc_cmd(sock, "JOIN #canal_test");
+    //send_irc_cmd(sock, "JOIN #canal_test");
 
     sleep(1);
 
     // Enviar mensaje inicial
-    send_irc_cmd(sock, "PRIVMSG #canal_test :Hola desde cliente tester");
+    //send_irc_cmd(sock, "PRIVMSG #canal_test :Hola desde cliente tester");
 
     // Loop principal (leer servidor + stdin)
     fd_set fds;

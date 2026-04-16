@@ -1,5 +1,9 @@
 #include "../inc/header.h"
 #include "../inc/Server.h"
+#include "Client.hpp"
+#include <map>
+
+std::map<int, Client> clients;
 
 int  setNonBlocking(int fd)
 {
@@ -14,6 +18,19 @@ int  setNonBlocking(int fd)
             return -1;
     }
     return 1;
+}
+
+void handleClientData(Client& client , char *tempBuffer){
+    client.setMesagge(client.getMessage() + tempBuffer);
+
+    std::size_t pos = 0;
+    std::string currentBuffer = client.getMessage();
+    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
+        std::string command = currentBuffer.substr(0, pos);
+        currentBuffer.erase(0, pos + 2);
+        std::cout << "comando: " << command << "$" << std::endl;
+    }
+    client.setMesagge(currentBuffer);
 }
 
 int main(int ar, char const *argv[])
@@ -43,6 +60,7 @@ int main(int ar, char const *argv[])
     }
 
     struct sockaddr_in server_address;
+
     std::memset(&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY; // Escuchar en cualquier IP de esta PC
@@ -94,9 +112,10 @@ int main(int ar, char const *argv[])
         if(num_eventos < 0)
         {
             if (errno == EINTR)
+            {
+                std::cerr << "Error in epollwait;" << std::endl;
                 continue;
-            std::cerr << "Error in epollwait;" << std::endl;
-            return 1;
+            }           
         }
 
         for (int i = 0; i < num_eventos; i++)
@@ -117,6 +136,22 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error al fcntl 2" << std::endl;
                     return 1;
                 }
+                
+                Client clien (new_socket);
+                clients.insert(std::pair<int, Client>(clien.getFd(), clien));
+                
+                // aqui agregar validacion de cliente
+                /*char buffer[1024] = {0};
+                if (recv(clien.getFd(), buffer, sizeof(buffer) -1 , 0) <= 0)
+                {
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clien.getFd(), NULL);
+                    std::cout << YELLOW << "Cliente desconectado.  on 0" << RESET << std::endl;
+                    close(clien.getFd());
+                        continue;
+                }
+                handleClientData(clien, buffer);*/
+
+
 
                 // Añadimos el NUEVO cliente a la vigilancia de epoll
                 struct epoll_event new_event_c;
@@ -158,6 +193,10 @@ int main(int ar, char const *argv[])
                         std::cerr << "Error in send" << std::endl;
                        continue;
                     }
+                    
+                    handleClientData(clients[epoll_fd], buffer);
+
+
                 }
             }
        
