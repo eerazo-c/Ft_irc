@@ -1,8 +1,9 @@
 #include "Server.h"
 
-Server::Server()
+Server::Server() : _port_s(0),_password(""),_server_socket(-1)
 {
-
+    std::memset(&this->_server_address, 0, sizeof(this->_server_address));
+    std::cout << "no deberias estar haciendo esto;" << std::endl;
 }
 
 Server::Server(const Server &to_copy)
@@ -12,8 +13,10 @@ Server::Server(const Server &to_copy)
 
 Server::Server(int &port, std::string &password)
 {
-    (void)port;
-    (void)password;
+    setPort(port);
+    setPass(password);
+    
+    
 }
 
 Server &Server::operator=(const Server &orignal)
@@ -30,3 +33,43 @@ Server::~Server()
 {
 
 }
+
+
+int Server::setNonBlocking_socket(int socket_s)
+{
+    int flags; 
+    while ((flags = fcntl(socket_s, F_GETFL, 0)) == -1)
+    {
+        if (errno != EINTR)
+            return -1;
+    }
+    while (fcntl(socket_s, F_SETFL, flags | O_NONBLOCK) == -1) {
+        if (errno != EINTR)  
+            return -1;
+    }
+    return 1;
+}
+
+
+void Server::setPort(int port)
+{
+    this->_port_s = port;
+}
+void Server::setPass(std::string pass)
+{
+    this->_password = pass;
+}
+void Server::setServer_socket(int socket)
+{
+    this->_server_socket = socket;
+}
+void Server::setServer_address()
+{
+    this->_server_address.sin_family = AF_INET;
+    this->_server_address.sin_addr.s_addr=INADDR_ANY;
+    this->_server_address.sin_port = htons(getPort());
+}
+std::string Server::getPass(){ return _password; }
+int Server::getPort() const{return _port_s;}
+int Server::getServer_socket() const{return _server_socket;}
+struct sockaddr_in Server::getServer_address(){ return _server_address;}

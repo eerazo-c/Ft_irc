@@ -8,25 +8,37 @@
 class Server
 {
     private:
-     /* int _port_s;
+        int _port_s;
         std::string  _password;
         int _server_socket;
-        struct sockaddr_in _server_address;
+        struct sockaddr_in _server_address;  
         
-    */
     public:
-        Server();
+        Server();   
         Server(const Server &to_copy);
         Server(int &port, std::string &password);
         Server &operator=(const Server &orignal);
         ~Server();
 
+        int setNonBlocking_socket(int socket_s);
+    
+
+
+        void setPort(int port);
+        void setPass(std::string pass);
+        void setServer_socket(int socket);
+        void setServer_address();
+
+        std::string getPass();
+        int getPort() const;
+        int getServer_socket() const;
+        struct sockaddr_in getServer_address();
+
     // para luego el tipo de exception 
-    class Exe : public std::exception
+    class Error_fd : public std::exception
     {
         virtual const char * what() const throw();
     };
-
 };
 
 #endif
