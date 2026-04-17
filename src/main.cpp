@@ -1,7 +1,7 @@
-#include "../inc/header.h"
-#include "../inc/Server.h"
+#include "header.h"
+#include "Server.h"
 #include "Client.hpp"
-#include <map>
+
 
 std::map<int, Client> clients;
 
@@ -20,6 +20,46 @@ int  setNonBlocking(int fd)
     return 1;
 }
 
+void printElement(std::string str){
+    std::cout << "argument: " << str << std::endl;
+}
+
+void parser(std::string buffer){
+    std::string command;
+    std::vector<std::string> params;
+    std::string trailing_param;
+    size_t pos = std::string::npos;
+    size_t trailing_pos = std::string::npos;
+
+    pos = buffer.find(" ");
+    command = buffer.substr(0, pos);
+    std::cout << "command: " << command << std::endl;
+
+    buffer.erase(0, pos + 1);
+    if ((trailing_pos = buffer.find(" :")) != std::string::npos){
+        trailing_param = buffer.substr(trailing_pos + 2, std::string::npos);
+        std::cout << "trailing argument: " << trailing_param << std::endl;
+        buffer.erase(trailing_pos);
+        int i = 0;
+        while((pos = buffer.find(" ")) != std::string::npos){
+            params.push_back(buffer.substr(0, pos));
+            buffer.erase(0, pos);
+            i++;
+        }
+        params.push_back(buffer);
+    }
+    else{
+        int i = 0;
+        while((pos = buffer.find(" ")) != std::string::npos){
+            params.push_back(buffer.substr(0, pos));
+            buffer.erase(0, pos);
+            i++;
+        }
+        params.push_back(buffer);
+    }
+    std::for_each(params.begin(), params.end(), printElement);
+}
+
 void handleClientData(Client& client , char *tempBuffer){
     client.setMesagge(client.getMessage() + tempBuffer);
 
@@ -28,7 +68,8 @@ void handleClientData(Client& client , char *tempBuffer){
     while((pos = currentBuffer.find("\r\n")) != std::string::npos){
         std::string command = currentBuffer.substr(0, pos);
         currentBuffer.erase(0, pos + 2);
-        std::cout << "comando: " << command << "$" << std::endl;
+        std::cout << "message: " << command << "$" << std::endl;
+        parser(command);
     }
     client.setMesagge(currentBuffer);
 }
@@ -195,8 +236,6 @@ int main(int ar, char const *argv[])
                     }
                     
                     handleClientData(clients[epoll_fd], buffer);
-
-
                 }
             }
        

@@ -6,6 +6,7 @@ SRCSDIR		=	src
 SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
+DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})
 
 PURPLE		=	\033[0;33m
 BLUE		=	\033[0;33m
@@ -23,10 +24,9 @@ banner:
 	@echo "# ========================== #"
 	@printf "%b" "\n$(RESET)"
 
-$(OBJS): $(OBJDIR)/%.o : $(SRCSDIR)/%.cpp Makefile inc/header.h \
-	inc/Channel.hpp inc/Server.h inc/Client.hpp| $(OBJDIR)
+$(OBJS): $(OBJDIR)/%.o : $(SRCSDIR)/%.cpp Makefile | $(OBJDIR)
 	@printf "%-42b" "$(BLUE)compiling... $(PURPLE)$(@F)$(RESET)\n"
-	@$(CC) $(CFLAGS) -MMD -c $< -o $@
+	@$(CC) $(CFLAGS) -MMD -MF $(OBJDIR)/$*.d -c $< -o $@
 
 $(OBJDIR):
 	@-mkdir $(OBJDIR)
@@ -44,5 +44,7 @@ clean: banner
 	@rm -rf $(OBJDIR)
 
 re:    fclean all
+
+-include $(DEPS)
 
 .PHONY: all banner clean fclean re
