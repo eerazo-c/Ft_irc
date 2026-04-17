@@ -13,8 +13,38 @@ Server::Server(const Server &to_copy)
 
 Server::Server(int &port, std::string &password)
 {
-    setPort(port);
-    setPass(password);
+    
+    try
+    {
+        setPort(port);
+        setPass(password);
+
+        int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (server_socket < 0)
+            throw("Error socket");
+        
+        setServer_socket(server_socket);
+
+        if (setNonBlocking_socket(this->getServer_socket()))
+            throw("Error fcntl");
+
+        std::memset(&getServer_address(), 0, sizeof(getServer_address()));
+        setServer_address();
+        setSockectReusable();    
+
+        bindSocketToServer();
+        listenServer();
+
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }    
+
+    
+
+
+    
     
     
 }
@@ -31,7 +61,8 @@ Server &Server::operator=(const Server &orignal)
 
 Server::~Server()
 {
-
+    // cerrar los fd de los clientes tambien
+    close (_server_socket);
 }
 
 
@@ -49,6 +80,38 @@ int Server::setNonBlocking_socket(int socket_s)
     }
     return 1;
 }
+void Server::setSockectReusable()
+{
+    int opt = 1;
+    setsockopt(getServer_socket(), SOL_SOCKET, SO_REUSEADDR, &opt,sizeof(opt));
+}
+
+
+int Server::bindSocketToServer()
+{
+    if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_socket())) < 0)
+    {
+       // close()  fds
+        throw("Error in bind");
+    }
+}
+int Server::listenServer()
+{
+   if (listen(getServer_socket(), MAX_CONECTIONS) < 0)
+    {
+        //closee   
+        throw("Error Listen");
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 void Server::setPort(int port)
