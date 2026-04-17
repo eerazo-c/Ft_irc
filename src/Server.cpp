@@ -11,7 +11,7 @@ Server::Server(const Server &to_copy)
     *this = to_copy;
 }
 
-Server::Server(int &port, std::string &password)
+Server::Server(int port, std::string &password)
 {
     
     try
@@ -22,19 +22,9 @@ Server::Server(int &port, std::string &password)
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
             throw("Error socket");
-        
         setServer_socket(server_socket);
-
-        if (setNonBlocking_socket(this->getServer_socket()))
+        if (setNonBlocking_socket(this->getServer_socket()) == -1)
             throw("Error fcntl");
-
-        std::memset(&getServer_address(), 0, sizeof(getServer_address()));
-        setServer_address();
-        setSockectReusable();    
-
-        bindSocketToServer();
-        listenServer();
-
     }
     catch(const std::exception& e)
     {
@@ -89,11 +79,13 @@ void Server::setSockectReusable()
 
 int Server::bindSocketToServer()
 {
-    if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_socket())) < 0)
+    if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_address())) < 0)
     {
        // close()  fds
         throw("Error in bind");
+        return -1;
     }
+    return 1;
 }
 int Server::listenServer()
 {
@@ -101,7 +93,9 @@ int Server::listenServer()
     {
         //closee   
         throw("Error Listen");
+        return -1;
     }
+    return 1;
 }
 
 
@@ -135,4 +129,4 @@ void Server::setServer_address()
 std::string Server::getPass(){ return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
-struct sockaddr_in Server::getServer_address(){ return _server_address;}
+struct sockaddr_in& Server::getServer_address(){ return _server_address;}

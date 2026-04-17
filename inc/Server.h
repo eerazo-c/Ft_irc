@@ -15,10 +15,11 @@ class Server
         int epoll_fd;
         
       //  std::map<int , Client> _client_map;
-    public:
         Server();   
+    public:
+        
         Server(const Server &to_copy);
-        Server(int &port, std::string &password);
+        Server(int port, std::string &password);
         Server &operator=(const Server &orignal);
         ~Server();
 
@@ -42,7 +43,7 @@ class Server
         std::string getPass();
         int getPort() const;
         int getServer_socket() const;
-        struct sockaddr_in getServer_address();
+        struct sockaddr_in& getServer_address();
         int getEpoll_fd();
 
     // para luego el tipo de exception 
