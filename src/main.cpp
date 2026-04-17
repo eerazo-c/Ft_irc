@@ -31,11 +31,16 @@ void parser(std::string buffer){
     size_t pos = std::string::npos;
     size_t trailing_pos = std::string::npos;
 
-    pos = buffer.find(" ");
-    command = buffer.substr(0, pos);
-    std::cout << "command: " << command << std::endl;
+    if ((pos = buffer.find(" ")) != std::string::npos){
+        command = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+        std::cout << "command: " << command << std::endl;
+    }
+    else{
+        command = buffer;
+        buffer.clear();
+    }
 
-    buffer.erase(0, pos + 1);
     if ((trailing_pos = buffer.find(" :")) != std::string::npos){
         trailing_param = buffer.substr(trailing_pos + 2, std::string::npos);
         std::cout << "trailing argument: " << trailing_param << std::endl;
@@ -43,7 +48,7 @@ void parser(std::string buffer){
         int i = 0;
         while((pos = buffer.find(" ")) != std::string::npos){
             params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos);
+            buffer.erase(0, pos + 1);
             i++;
         }
         params.push_back(buffer);
@@ -52,7 +57,7 @@ void parser(std::string buffer){
         int i = 0;
         while((pos = buffer.find(" ")) != std::string::npos){
             params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos);
+            buffer.erase(0, pos + 1);
             i++;
         }
         params.push_back(buffer);
