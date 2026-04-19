@@ -21,15 +21,14 @@ int main(int ar, char const *argv[])
         irccserver.setSockectReusable();    
         irccserver.bindSocketToServer();
         irccserver.listenServer();
+        std::cout << "Escuchando ..." << std::endl;
+        irccserver.setEpoll();
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
     
-    
-
-
     //////////////////////////
     // prueba del epoll()
     int epoll_fd = epoll_create1(0);
