@@ -12,7 +12,9 @@ class Server
         std::string  _password;
         int _server_socket;
         struct sockaddr_in _server_address;
-        Server();
+
+        std::map<int ,Client> _clients;
+        Server();       
     public:
         
         Server(const Server &to_copy);
@@ -36,6 +38,8 @@ class Server
         void setServer_address();
        
 
+        void addClient(int fd, Client client);
+        std::map<int ,Client>getClients();
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;

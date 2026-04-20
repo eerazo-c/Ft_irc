@@ -1,9 +1,9 @@
 #include "header.h"
 #include "Server.h"
-#include "Client.hpp"
 
 
-std::map<int, Client> clients;
+
+//std::map<int, Client> clients;
 
 int  setNonBlocking(int fd)
 {
@@ -128,8 +128,8 @@ int main(int ar, char const *argv[])
 
     while (true)
     { 
-        struct sockaddr_in client_addr;
-        socklen_t addrlen = sizeof(client_addr);
+        // struct sockaddr_in client_addr;
+        // socklen_t addrlen = sizeof(client_addr);
 
         int num_eventos = epoll_wait(epoll_fd, events_epoll, 10, -1);
         if(num_eventos < 0)
@@ -145,8 +145,12 @@ int main(int ar, char const *argv[])
         {
             if (events_epoll[i].data.fd == irccserver.getServer_socket())
             {
-                // A) Si el evento es en el socket principal: ES UN CLIENTE NUEVO
-                int new_socket = accept(irccserver.getServer_socket(), (struct sockaddr *)&client_addr, (socklen_t*)&addrlen);
+                Client nclient;
+                nclient.getAddressLen() = sizeof (struct sockaddr_in);
+
+                int new_socket = accept(irccserver.getServer_socket(),
+                 (struct sockaddr *)&nclient.getClient_addres(),
+                  &nclient.getAddressLen());
                 if(new_socket < 0)
                 { 
                     if(errno == EAGAIN || errno == EWOULDBLOCK)
@@ -154,29 +158,14 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error in accept" << std::endl;
                     break;
                 }
-                if (setNonBlocking(new_socket) == -1)
+                if (irccserver.setNonBlocking_socket(new_socket) == -1)
                 {
                     std::cerr << "Error al fcntl 2" << std::endl;
                     return 1;
                 }
                 
-                Client clien (new_socket);
-                clients.insert(std::pair<int, Client>(clien.getFd(), clien));
-                
-                // aqui agregar validacion de cliente
-                /*char buffer[1024] = {0};
-                if (recv(clien.getFd(), buffer, sizeof(buffer) -1 , 0) <= 0)
-                {
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clien.getFd(), NULL);
-                    std::cout << YELLOW << "Cliente desconectado.  on 0" << RESET << std::endl;
-                    close(clien.getFd());
-                        continue;
-                }
-                handleClientData(clien, buffer);*/
+                irccserver.addClient(new_socket,nclient);
 
-
-
-                // Añadimos el NUEVO cliente a la vigilancia de epoll
                 struct epoll_event new_event_c;
                 new_event_c.events = EPOLLIN; 
                 new_event_c.data.fd = new_socket;
@@ -217,7 +206,7 @@ int main(int ar, char const *argv[])
                        continue;
                     }
                     
-                    handleClientData(clients[epoll_fd], buffer);
+                    handleClientData(irccserver.getClients()[epoll_fd], buffer);
                 }
             }
        

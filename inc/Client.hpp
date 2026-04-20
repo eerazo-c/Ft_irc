@@ -17,6 +17,8 @@ class Client{
         std::string _message;
         AuthState _state;
 
+        struct sockaddr_in _client_addr;
+        socklen_t _addrlen;
 
     public:
         Client();
@@ -30,10 +32,18 @@ class Client{
         const std::string& getName() const;
         std::string& getMessage();
         const AuthState& getState() const;
+        const struct sockaddr_in& getClient_addres() const;
+         socklen_t& getAddressLen() ;
+
 
         void setFd(int fd);
         void setNick(const std::string& nick);
         void setUser(const std::string& user);
         void setMesagge(const std::string& message);
         void setState(AuthState state);
+
+        void setClient_addres();
+
+
+
 };

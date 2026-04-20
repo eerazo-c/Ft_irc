@@ -52,6 +52,12 @@ Server::~Server()
 }
 
 
+void Server::addClient(int fd, Client cliente)
+{
+    cliente.setFd(fd);
+    _clients.insert(std::pair<int, Client>(fd, cliente));
+}
+
 int Server::setNonBlocking_socket(int socket_s)
 {
     int flags; 
@@ -142,6 +148,7 @@ int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
 
+std::map<int, Client> Server::getClients(){ return _clients;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
