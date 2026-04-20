@@ -1,5 +1,83 @@
-#include "../inc/header.h"
-#include "../inc/Server.h"
+#include "header.h"
+#include "Server.h"
+#include "Client.hpp"
+
+
+std::map<int, Client> clients;
+
+int  setNonBlocking(int fd)
+{
+    int flags; 
+    while ((flags = fcntl(fd, F_GETFL, 0)) == -1)
+    {
+        if (errno != EINTR)
+            return -1;
+    }
+    while (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        if (errno != EINTR)  
+            return -1;
+    }
+    return 1;
+}
+
+void printElement(std::string str){
+    std::cout << "argument: " << str << std::endl;
+}
+
+void parser(std::string buffer){
+    std::string command;
+    std::vector<std::string> params;
+    std::string trailing_param;
+    size_t pos = std::string::npos;
+    size_t trailing_pos = std::string::npos;
+
+    if ((pos = buffer.find(" ")) != std::string::npos){
+        command = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+        std::cout << "command: " << command << std::endl;
+    }
+    else{
+        command = buffer;
+        buffer.clear();
+    }
+
+    if ((trailing_pos = buffer.find(" :")) != std::string::npos){
+        trailing_param = buffer.substr(trailing_pos + 2, std::string::npos);
+        std::cout << "trailing argument: " << trailing_param << std::endl;
+        buffer.erase(trailing_pos);
+        int i = 0;
+        while((pos = buffer.find(" ")) != std::string::npos){
+            params.push_back(buffer.substr(0, pos));
+            buffer.erase(0, pos + 1);
+            i++;
+        }
+        params.push_back(buffer);
+    }
+    else{
+        int i = 0;
+        while((pos = buffer.find(" ")) != std::string::npos){
+            params.push_back(buffer.substr(0, pos));
+            buffer.erase(0, pos + 1);
+            i++;
+        }
+        params.push_back(buffer);
+    }
+    std::for_each(params.begin(), params.end(), printElement);
+}
+
+void handleClientData(Client& client , char *tempBuffer){
+    client.setMesagge(client.getMessage() + tempBuffer);
+
+    std::size_t pos = 0;
+    std::string currentBuffer = client.getMessage();
+    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
+        std::string command = currentBuffer.substr(0, pos);
+        currentBuffer.erase(0, pos + 2);
+        std::cout << "message: " << command << "$" << std::endl;
+        parser(command);
+    }
+    client.setMesagge(currentBuffer);
+}
 
 int main(int ar, char const *argv[])
 {
@@ -57,9 +135,10 @@ int main(int ar, char const *argv[])
         if(num_eventos < 0)
         {
             if (errno == EINTR)
+            {
+                std::cerr << "Error in epollwait;" << std::endl;
                 continue;
-            std::cerr << "Error in epollwait;" << std::endl;
-            return 1;
+            }           
         }
 
         for (int i = 0; i < num_eventos; i++)
@@ -75,7 +154,26 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error in accept" << std::endl;
                     break;
                 }
-                irccserver.setNonBlocking_socket(irccserver.getServer_socket());
+                if (setNonBlocking(new_socket) == -1)
+                {
+                    std::cerr << "Error al fcntl 2" << std::endl;
+                    return 1;
+                }
+                
+                Client clien (new_socket);
+                clients.insert(std::pair<int, Client>(clien.getFd(), clien));
+                
+                // aqui agregar validacion de cliente
+                /*char buffer[1024] = {0};
+                if (recv(clien.getFd(), buffer, sizeof(buffer) -1 , 0) <= 0)
+                {
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clien.getFd(), NULL);
+                    std::cout << YELLOW << "Cliente desconectado.  on 0" << RESET << std::endl;
+                    close(clien.getFd());
+                        continue;
+                }
+                handleClientData(clien, buffer);*/
+
 
 
                 // Añadimos el NUEVO cliente a la vigilancia de epoll
@@ -118,6 +216,8 @@ int main(int ar, char const *argv[])
                         std::cerr << "Error in send" << std::endl;
                        continue;
                     }
+                    
+                    handleClientData(clients[epoll_fd], buffer);
                 }
             }
        

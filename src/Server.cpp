@@ -10,7 +10,7 @@ Server &Server::operator=(const Server &orignal)
 {
     if (this != &orignal) {}return *this;
 }
-
+//
 Server::Server(const Server &to_copy)
 {
     *this = to_copy;

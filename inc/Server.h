@@ -5,19 +5,16 @@
 
 #include "header.h"
 
-class Server
+class Server 
 {
     private:
         int _port_s;
         std::string  _password;
         int _server_socket;
-        struct sockaddr_in _server_address;  
-        int epoll_fd;
-  
+        struct sockaddr_in _server_address;
+        Server();
+    public:
         
-        
-      //  std::map<int , Client> _client_map;
-        Server();   
         Server(const Server &to_copy);
         Server &operator=(const Server &orignal);
     public:
