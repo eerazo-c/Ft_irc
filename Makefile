@@ -1,9 +1,21 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2026/04/20 15:12:31 by elerazo-          #+#    #+#              #
+#    Updated: 2026/04/20 15:12:59 by elerazo-         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 NAME		=	ircserv
 CC			=	c++
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
-SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp
+SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp \
+				Command.cpp
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
 DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})
@@ -43,7 +55,7 @@ clean: banner
 	@printf "%b" "$(BLUE)$(@)ing...$(RESET)\n"
 	@rm -rf $(OBJDIR)
 
-re:    fclean all
+re:	fclean all
 
 -include $(DEPS)
 

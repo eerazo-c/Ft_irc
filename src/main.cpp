@@ -1,7 +1,7 @@
 #include "header.h"
 #include "Server.h"
 #include "Client.hpp"
-
+#include "Command.hpp"
 
 std::map<int, Client> clients;
 
@@ -31,10 +31,11 @@ void parser(std::string buffer){
     size_t pos = std::string::npos;
     size_t trailing_pos = std::string::npos;
 
-    if ((pos = buffer.find(" ")) != std::string::npos){
+    if ((pos = buffer.find(" ")) != std::string::npos ){
         command = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
         std::cout << "command: " << command << std::endl;
+		if (command == "PASS") --> lo puso eli
     }
     else{
         command = buffer;
@@ -81,6 +82,8 @@ void handleClientData(Client& client , char *tempBuffer){
 
 int main(int ar, char const *argv[])
 {
+	Command client1;
+
     if (ar !=3)
     {
         std::cout << RED << "ERROR: Invalid Arguments" << RESET <<
