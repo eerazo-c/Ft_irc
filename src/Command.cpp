@@ -40,7 +40,7 @@ std::string Command::getCommand(void) const{
 
 Command::Cp(void)
 {
-	typeCmd["PASS"];
+	typeCmd["PASS"] = new Pass;
 	/*commands_["INVITE"] = new Invite;
 	commands_["JOIN"] = new Join;
 	commands_["KICK"] = new Kick;
