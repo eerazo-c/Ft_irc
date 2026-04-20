@@ -22,7 +22,7 @@ int main(int ar, char const *argv[])
         irccserver.bindSocketToServer();
         irccserver.listenServer();
         std::cout << "Escuchando ..." << std::endl;
-        irccserver.setEpoll();
+     
     }
     catch(const std::exception& e)
     {

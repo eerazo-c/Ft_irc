@@ -13,8 +13,7 @@ class Server
         int _server_socket;
         struct sockaddr_in _server_address;  
         int epoll_fd;
-        struct epoll_event s_event_epoll ;
-        struct epoll_event m_events_epoll[10];
+  
         
         
       //  std::map<int , Client> _client_map;
@@ -38,18 +37,13 @@ class Server
         void setPass(std::string pass);
         void setServer_socket(int socket);
         void setServer_address();
-        void setEpoll();
+       
 
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;
         struct sockaddr_in& getServer_address();
-        int getEpoll_fd() const ;
-
-        // struct epoll_event* getEventEpoll_s()  ;
-        // struct epoll_event* getEventsEpoll_m()  ;
-
-    // para luego el tipo de exception 
+        // para luego el tipo de exception 
     class Error_fd : public std::exception
     {
         virtual const char * what() const throw();
