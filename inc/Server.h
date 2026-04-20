@@ -39,7 +39,7 @@ class Server
        
 
         void addClient(int fd, Client client);
-        std::map<int ,Client>getClients();
+        std::map<int ,Client>& getClients();
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;
