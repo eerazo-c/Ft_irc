@@ -1,9 +1,9 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #pragma once
 
-#include "header.h"
+#include "header.hpp"
 
 class Server 
 {

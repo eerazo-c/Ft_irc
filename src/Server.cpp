@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "Server.hpp"
 
 Server::Server() : _port_s(0),_password(""),_server_socket(-1)
 {
