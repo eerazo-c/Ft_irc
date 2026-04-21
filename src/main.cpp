@@ -1,9 +1,7 @@
 #include "header.h"
 #include "Server.h"
-#include "Client.hpp"
-#include "Command.hpp"
 
-std::map<int, Client> clients;
+//std::map<int, Client> clients;
 
 int  setNonBlocking(int fd)
 {
@@ -34,43 +32,38 @@ void parser(std::string buffer){
     if ((pos = buffer.find(" ")) != std::string::npos ){
         command = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
-        std::cout << "command: " << command << std::endl;
-		if (command == "PASS") --> lo puso eli
     }
     else{
         command = buffer;
         buffer.clear();
     }
+    std::cout << "command: " << command << std::endl;
 
     if ((trailing_pos = buffer.find(" :")) != std::string::npos){
-        trailing_param = buffer.substr(trailing_pos + 2, std::string::npos);
-        std::cout << "trailing argument: " << trailing_param << std::endl;
+        trailing_param = buffer.substr(trailing_pos + 2);
         buffer.erase(trailing_pos);
-        int i = 0;
-        while((pos = buffer.find(" ")) != std::string::npos){
-            params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos + 1);
-            i++;
+        if (!trailing_param.empty()){
+            std::cout << "trailing argument: " << trailing_param << std::endl;
         }
-        params.push_back(buffer);
     }
-    else{
-        int i = 0;
-        while((pos = buffer.find(" ")) != std::string::npos){
-            params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos + 1);
-            i++;
-        }
-        params.push_back(buffer);
+
+    while((pos = buffer.find(' ')) != std::string::npos){
+        std::string token = buffer.substr(0, pos);
+        if (!token.empty())
+            params.push_back(token);
+        buffer.erase(0, pos + 1);
     }
+    params.push_back(buffer);
+
     std::for_each(params.begin(), params.end(), printElement);
 }
 
-void handleClientData(Client& client , char *tempBuffer){
+void handleClientData(Client& client , std::string tempBuffer){
     client.setMesagge(client.getMessage() + tempBuffer);
 
     std::size_t pos = 0;
     std::string currentBuffer = client.getMessage();
+
     while((pos = currentBuffer.find("\r\n")) != std::string::npos){
         std::string command = currentBuffer.substr(0, pos);
         currentBuffer.erase(0, pos + 2);
@@ -90,63 +83,40 @@ int main(int ar, char const *argv[])
         std::endl << YELLOW << "usage: /ircserv <port> <password>" << RESET<< std::endl;
         return 1;
     }
-    std::cout << "Todo bien jeje" << std::endl;
+    
     std::string in_port (argv[1]);
     std::string in_password (argv[2]);
     //Server main_server(in_port, in_password);
-
- 
-    int socket_t = socket(AF_INET, SOCK_STREAM, 0); // renombar a serversocket despues del test
-    if (socket_t < 0)
-    {
-        std::cerr << "Error al crear el socket" << std::endl;
-        return 1;
+    Server irccserver (std::atoi(argv[1]), in_password);
+    std::memset(&(irccserver.getServer_address()), 0, sizeof(irccserver.getServer_address()));
+    try
+    {    
+        irccserver.setServer_address();
+        irccserver.setSockectReusable();    
+        irccserver.bindSocketToServer();
+        irccserver.listenServer();
+        std::cout << "Escuchando ..." << std::endl;
+     
     }
-    if (setNonBlocking(socket_t) == -1)
+    catch(const std::exception& e)
     {
-        std::cerr << "Error al fcntl 1" << std::endl;
-        return 1;
-    }
-
-    struct sockaddr_in server_address;
-
-    std::memset(&server_address, 0, sizeof(server_address));
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY; // Escuchar en cualquier IP de esta PC
-    server_address.sin_port = htons(std::atoi(argv[1]));//htons transforma un int a una networkbite (orden de bytes)
-
-
-    int opt = 1;
-    setsockopt(socket_t, SOL_SOCKET, SO_REUSEADDR, &opt,sizeof(opt));
-    // Ata el socket al puerto pasado por parametro   ej 8080
-    if (bind(socket_t, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-    {
-        std::cerr << "Error in bind;" << std::endl;
-        return 1;
+        std::cerr << e.what() << '\n';
     }
     
-    // Ponerse a escuchar (máximo 3 personas en fila)
-    if (listen(socket_t, MAX_CONECTIONS) < 0)
-    {
-        std::cerr << "Error in listen;" << std::endl;
-        return 1;
-    }
-    std::cout << "Esperando cliente..." << std::endl;
-    std::cout << "Servidor escuchando en el puerto "<< in_port << std::endl;
-    
+    //////////////////////////
     // prueba del epoll()
     int epoll_fd = epoll_create1(0);
     if (epoll_fd < 0)
     {
         std::cerr << "Error in epoll;" << std::endl;
-        close(socket_t);
+        close(irccserver.getServer_socket());
         return 1;
     }
     
     struct epoll_event event_epoll , events_epoll[10];
     event_epoll.events = EPOLLIN | EPOLLET; // Avisar cuando haya datos de entrada (nuevas conexiones)
-    event_epoll.data.fd = socket_t;   // Asociar nuestro socket principal
-    if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_t, &event_epoll)< 0)
+    event_epoll.data.fd = irccserver.getServer_socket();   // Asociar nuestro socket principal
+    if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, irccserver.getServer_socket(), &event_epoll)< 0)
     {
         std::cerr << "Error in epoll_ctl" << std::endl;
         return 1;
@@ -154,8 +124,8 @@ int main(int ar, char const *argv[])
 
     while (true)
     { 
-        struct sockaddr_in client_addr;
-        socklen_t addrlen = sizeof(client_addr);
+        // struct sockaddr_in client_addr;
+        // socklen_t addrlen = sizeof(client_addr);
 
         int num_eventos = epoll_wait(epoll_fd, events_epoll, 10, -1);
         if(num_eventos < 0)
@@ -169,10 +139,14 @@ int main(int ar, char const *argv[])
 
         for (int i = 0; i < num_eventos; i++)
         {
-            if (events_epoll[i].data.fd == socket_t)
+            if (events_epoll[i].data.fd == irccserver.getServer_socket())
             {
-                // A) Si el evento es en el socket principal: ES UN CLIENTE NUEVO
-                int new_socket = accept(socket_t, (struct sockaddr *)&client_addr, (socklen_t*)&addrlen);
+                Client nclient;
+                nclient.getAddressLen() = sizeof (struct sockaddr_in);
+
+                int new_socket = accept(irccserver.getServer_socket(),
+                 (struct sockaddr *)&nclient.getClient_addres(),
+                  &nclient.getAddressLen());
                 if(new_socket < 0)
                 { 
                     if(errno == EAGAIN || errno == EWOULDBLOCK)
@@ -180,29 +154,14 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error in accept" << std::endl;
                     break;
                 }
-                if (setNonBlocking(new_socket) == -1)
+                if (irccserver.setNonBlocking_socket(new_socket) == -1)
                 {
                     std::cerr << "Error al fcntl 2" << std::endl;
                     return 1;
                 }
                 
-                Client clien (new_socket);
-                clients.insert(std::pair<int, Client>(clien.getFd(), clien));
-                
-                // aqui agregar validacion de cliente
-                /*char buffer[1024] = {0};
-                if (recv(clien.getFd(), buffer, sizeof(buffer) -1 , 0) <= 0)
-                {
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clien.getFd(), NULL);
-                    std::cout << YELLOW << "Cliente desconectado.  on 0" << RESET << std::endl;
-                    close(clien.getFd());
-                        continue;
-                }
-                handleClientData(clien, buffer);*/
+                irccserver.addClient(new_socket,nclient);
 
-
-
-                // Añadimos el NUEVO cliente a la vigilancia de epoll
                 struct epoll_event new_event_c;
                 new_event_c.events = EPOLLIN; 
                 new_event_c.data.fd = new_socket;
@@ -243,13 +202,13 @@ int main(int ar, char const *argv[])
                        continue;
                     }
                     
-                    handleClientData(clients[epoll_fd], buffer);
+                    handleClientData(irccserver.getClients()[client_fd], std::string(buffer));
                 }
             }
        
         }
     }
     close (epoll_fd);
-    close(socket_t);
+    close(irccserver.getServer_socket());
     return 0;
 }

@@ -20,7 +20,7 @@
 #include <vector>
 #include <map>
 #include <list>
-
+#include "Client.hpp"
 #define MAX_CONECTIONS 10
 
 
