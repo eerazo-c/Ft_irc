@@ -67,7 +67,7 @@ int Server::setNonBlocking_socket(int socket_s)
             return -1;
     }
     while (fcntl(socket_s, F_SETFL, flags | O_NONBLOCK) == -1) {
-        if (errno != EINTR)  
+        if (errno != EINTR)
             return -1;
     }
     return 1;
