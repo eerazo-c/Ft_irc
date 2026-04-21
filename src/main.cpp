@@ -75,8 +75,6 @@ void handleClientData(Client& client , std::string tempBuffer){
 
 int main(int ar, char const *argv[])
 {
-	Command client1;
-
     if (ar !=3)
     {
         std::cout << RED << "ERROR: Invalid Arguments" << RESET <<

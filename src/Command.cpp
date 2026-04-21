@@ -31,17 +31,17 @@ Command::~Command(){
 }
 
 void Command::execute(void) const{
-	std::cout << "aqui pasarian cosas, no se que" << std::endl;
+//	std::cout << "aqui pasarian cosas, no se que" << std::endl;
 }
 
 std::string Command::getCommand(void) const{
 	return (this->typeCmd);
 }
 
-Command::Cp(void)
+/*Command::Cp(void)
 {
 	typeCmd["PASS"] = new Pass;
-	/*commands_["INVITE"] = new Invite;
+	commands_["INVITE"] = new Invite;
 	commands_["JOIN"] = new Join;
 	commands_["KICK"] = new Kick;
 	commands_["MODE"] = new Mode;
@@ -50,5 +50,5 @@ Command::Cp(void)
 	commands_["PRIVMSG"] = new PrivMsg;
 	commands_["QUIT"] = new Quit;
 	commands_["TOPIC"] = new Topic;
-	commands_["USER"] = new User;*/
-}
+	commands_["USER"] = new User;
+}*/

@@ -28,7 +28,7 @@ class Command
 
 		std::string getCommand(void)const;
 		virtual void execute(void) const;
-		Command Cp(void);
+		//Command Cp(void);
 };
 
 class Pass : public Command
