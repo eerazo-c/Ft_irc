@@ -34,42 +34,38 @@ void parser(std::string buffer){
     if ((pos = buffer.find(" ")) != std::string::npos){
         command = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
-        std::cout << "command: " << command << std::endl;
     }
     else{
         command = buffer;
         buffer.clear();
     }
+    std::cout << "command: " << command << std::endl;
 
     if ((trailing_pos = buffer.find(" :")) != std::string::npos){
-        trailing_param = buffer.substr(trailing_pos + 2, std::string::npos);
-        std::cout << "trailing argument: " << trailing_param << std::endl;
+        trailing_param = buffer.substr(trailing_pos + 2);
         buffer.erase(trailing_pos);
-        int i = 0;
-        while((pos = buffer.find(" ")) != std::string::npos){
-            params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos + 1);
-            i++;
+        if (!trailing_param.empty()){
+            std::cout << "trailing argument: " << trailing_param << std::endl;
         }
-        params.push_back(buffer);
     }
-    else{
-        int i = 0;
-        while((pos = buffer.find(" ")) != std::string::npos){
-            params.push_back(buffer.substr(0, pos));
-            buffer.erase(0, pos + 1);
-            i++;
-        }
-        params.push_back(buffer);
+
+    while((pos = buffer.find(' ')) != std::string::npos){
+        std::string token = buffer.substr(0, pos);
+        if (!token.empty())
+            params.push_back(token);
+        buffer.erase(0, pos + 1);
     }
+    params.push_back(buffer);
+
     std::for_each(params.begin(), params.end(), printElement);
 }
 
-void handleClientData(Client& client , char *tempBuffer){
+void handleClientData(Client& client , std::string tempBuffer){
     client.setMesagge(client.getMessage() + tempBuffer);
 
     std::size_t pos = 0;
     std::string currentBuffer = client.getMessage();
+
     while((pos = currentBuffer.find("\r\n")) != std::string::npos){
         std::string command = currentBuffer.substr(0, pos);
         currentBuffer.erase(0, pos + 2);
@@ -206,7 +202,7 @@ int main(int ar, char const *argv[])
                        continue;
                     }
                     
-                    handleClientData(irccserver.getClients()[epoll_fd], buffer);
+                    handleClientData(irccserver.getClients()[client_fd], std::string(buffer));
                 }
             }
        
