@@ -30,7 +30,7 @@ class Server
         
         int bindSocketToServer();
         int listenServer();
-
+        int sendhandshake(int client_fd);
 
         void setPort(int port);
         void setPass(std::string pass);

@@ -3,7 +3,7 @@ CC			=	c++
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
-SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp
+SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp funtions_aux.cpp
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
 DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})

@@ -100,7 +100,10 @@ int Server::listenServer()
     return 1;
 }
 
-
+int Server::sendhandshake(int client_fd)
+{
+    return (send(client_fd, "OK",2 , 0));
+}
 
 
 

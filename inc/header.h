@@ -26,23 +26,23 @@
 
 
 
-#define RESET   "\033[0m"
+#define RESET   "\033[0m"       /*0      */
 
-#define BLACK   "\033[30m"      /* Black */   
+#define BLACK   "\033[30m"      /*1 Black */   
 
-#define RED     "\033[31m"      /* Red */     
+#define RED     "\033[31m"      /*2 Red */     
                                                    
-#define GREEN   "\033[32m"      /* Green */                          
+#define GREEN   "\033[32m"      /*3 Green */                          
 
-#define YELLOW  "\033[33m"      /* Yellow */      
+#define YELLOW  "\033[33m"      /*4 Yellow */      
                                                                                                          
-#define BLUE    "\033[34m"      /* Blue */                                
+#define BLUE    "\033[34m"      /*5 Blue */                                
 
-#define MAGENTA "\033[35m"      /* Magenta */    
+#define MAGENTA "\033[35m"      /*6 Magenta */    
                                                
-#define CYAN    "\033[36m"      /* Cyan */      
+#define CYAN    "\033[36m"      /*7 Cyan */      
                                                                
-#define WHITE   "\033[37m"      /* White */         
+#define WHITE   "\033[37m"      /*8 White */         
                                                       
 #define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */    
                                                       
@@ -63,4 +63,8 @@
 //std::cout << RED << "hello world" << RESET << std::endl;                                                      
 //Note: If you don't use RESET the color will remain changed until the next time you use a color code.     
 
+//AUXILIAR
+void wrong_args();
+int check_args(int n, const char *port, const char* password);
+void ft_message(std::string s, const char *color , int end_line);
 #endif
