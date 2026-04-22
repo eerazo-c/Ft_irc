@@ -19,11 +19,18 @@
 
 class Channel {
 	private:
-	std::map<std::string, Channel> _channel;
+	std::string _name;
+	std::map<int, Client *> _clients;
 
 	public:
 	Channel(std::string &name);
 	~Channel();
+
+	const std::string& getName() const;
+
+	bool isMember(Client &client);
+	void addClient(Client &client);
+	void removeClient(Client &client);
 
 	void partAll(Client &client);
 };

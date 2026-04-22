@@ -41,15 +41,41 @@ Join::~Join() : command("JOIN")
 
 }
 
-void Join::execute(Client& client, std::vector<std::string> args, Server &server) const{
-    (void)client;
-    (void)args;
-    (void)server;
+void Join::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
 	if (args.size() == 1 && args[0] == "0")
 	{
-		server.getChannel().partAll
+		std::map<std::string, Channel> &channels = server.getChannels();
+
+		for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); it++)
+		{
+			it->second.removeClient(client);
+		}
+		return;
 	}
-    std::cout << "Join execute" << std::endl;
+
+	// Parsear canales (#a,#b,#c)
+	std::stringstream ss(args[0]);
+	std::string chan_name;
+
+	while (std::getline(ss, chan_name, ','))
+	{
+		std::map<std::string, Channel> &channels = server.getChannels();
+
+		if (channels.find(chan_name) == channels.end())
+			channels.insert(std::make_pair(chan_name, Channel(chan_name)));
+
+		Channel &chan = channels[chan_name];
+
+		//  Si ya está dentro, skip
+		if (chan.isMember(client))
+			continue;
+
+		//  Añadir cliente
+		chan.addClient(client);
+
+		// aquí luego meter Write()
+	}
 }
 
 Part::~Part(){}

@@ -1,9 +1,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#pragma once
-
 #include "header.hpp"
+#include "Channel.hpp"
 
 class Server 
 {
@@ -14,7 +13,11 @@ class Server
         struct sockaddr_in _server_address;
 
         std::map<int ,Client> _clients;
-        Server();       
+        Server();
+
+		//canales eli add
+		std::map<std::string, Channel> _channels;
+
     public:
         
         Server(const Server &to_copy);
@@ -45,6 +48,12 @@ class Server
         int getServer_socket() const;
         struct sockaddr_in& getServer_address();
         // para luego el tipo de exception 
+
+		//Canales eli add
+		std::map<std::string, Channel>& getChannels(){
+			return (_channels);
+		};
+
     class Error_fd : public std::exception
     {
         virtual const char * what() const throw();
