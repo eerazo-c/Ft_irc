@@ -3,73 +3,62 @@
 /*                                                        :::      ::::::::   */
 /*   Command.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 14:00:40 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/04/20 14:07:05 by elerazo-         ###   ########.fr       */
+/*   Updated: 2026/04/21 22:15:04 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#pragma once
 
-#include <iostream>
+#pragma once
+#include "header.hpp"
 
 class Command 
 {
-	protected:
-		std::string typeCmd;
-
 	public:
-		Command();
-		Command(const Command &obj);
-		Command &operator=(const Command &obj);
+		virtual ~Command(){}
+		virtual void execute(Client& client, std::vector<std::string> args, Server &server) const = 0;
 
-		Command(std::string cmd);
-		virtual ~Command();
-
-		std::string getCommand(void)const;
-		virtual void execute(void) const;
-		//Command Cp(void);
 };
 
 class Pass : public Command
 {
-	void execute(void) const{
-		std::cout << "execute pass" << std::endl;
-	}
+	public:
+		~Pass();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
 
 class Nick : public Command
 {
-	void execute(void) const{
-		std::cout << "execute Nick" << std::endl;
-	}
+	public:
+		~Nick();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
 
 class User : public Command
 {
-	void execute(void) const{
-		std::cout << "execute user" << std::endl;
-	}
+	public:
+		~User();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
 
 class Join : public Command
 {
-	void execute(void) const{
-		std::cout << "execute join" << std::endl;
-	}
+	public:
+		~Join();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
 
 class Part : public Command
 {
-	void execute(void) const{
-		std::cout << "execute part" << std::endl;
-
-	}
+	public:
+		~Part();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
 
 class Quit : public Command
 {
-	void execute(void) const{
-		std::cout << "execute Quit" << std::endl;
-	}
+	public:
+		~Quit();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };

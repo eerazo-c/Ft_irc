@@ -1,5 +1,5 @@
-#ifndef HEADER_H 
-#define HEADER_H
+#ifndef HEADER_HPP
+#define HEADER_HPP
 
 #include <iostream>
 #include <string>
@@ -21,6 +21,9 @@
 #include <map>
 #include <list>
 #include "Client.hpp"
+#include "Parser.hpp"
+#include "Server.hpp"
+#include "Command.hpp"
 #define MAX_CONECTIONS 10
 
 
