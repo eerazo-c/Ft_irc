@@ -1,36 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*   Message.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/13 19:29:30 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/04/13 19:30:12 by elerazo-         ###   ########.fr       */
+/*   Created: 2026/04/22 16:56:39 by elerazo-          #+#    #+#             */
+/*   Updated: 2026/04/22 16:56:55 by elerazo-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Channel.hpp"
-#include "Client.hpp"
-
-Channel::Channel(std::string &name) : (name)
-{
-
-}
-
-Channel::~Channel(){
-
-}
-
-void Channel::partAll(Client &client)
-{
-	std::map<std::string, Channel>::iterator it;
-	for (it = _channel.begin(); it != _channel.end(); ++it)
-	{
-		if (cliente está dentro)
-			sacarlo del canal;
-	}
-}
+#include "Message.hpp"
 
 
-	for (; it != channels_.end(); ++it)
-		Part(client, it->first, "");

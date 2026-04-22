@@ -1,4 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Command.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
+/*   Updated: 2026/04/22 17:48:58 by elerazo-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "Command.hpp"
+#include "Channel.hpp"
 
 Pass::~Pass(){}
 void Pass::execute(Client& client, std::vector<std::string> args, Server &server) const{
@@ -24,11 +36,19 @@ void User::execute(Client& client, std::vector<std::string> args, Server &server
     std::cout << "User execute" << std::endl;
 }
 
-Join::~Join(){}
+Join::~Join() : command("JOIN")
+{
+
+}
+
 void Join::execute(Client& client, std::vector<std::string> args, Server &server) const{
     (void)client;
     (void)args;
     (void)server;
+	if (args.size() == 1 && args[0] == "0")
+	{
+		server.getChannel().partAll
+	}
     std::cout << "Join execute" << std::endl;
 }
 

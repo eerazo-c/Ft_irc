@@ -13,14 +13,19 @@
 # define CHANNEL_CPP
 
 #include <iostream>
+#include "Message.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
 
 class Channel {
 	private:
-
+	std::map<std::string, Channel> _channel;
 
 	public:
-	Channel();
+	Channel(std::string &name);
 	~Channel();
+
+	void partAll(Client &client);
 };
 
 #endif
