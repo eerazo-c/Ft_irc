@@ -8,8 +8,8 @@
 #include <exception>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cctype>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <sys/epoll.h>
 #include <cstring>
 #include <arpa/inet.h>

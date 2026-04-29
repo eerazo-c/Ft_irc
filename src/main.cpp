@@ -17,21 +17,6 @@ int  setNonBlocking(int fd)
     return 1;
 }
 
-void handleClientData(Client& client , std::string tempBuffer, Parser& parser, Server& server){
-    client.setMesagge(client.getMessage() + tempBuffer);
-
-    std::size_t pos = 0;
-    std::string currentBuffer = client.getMessage();
-
-    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
-        std::string command = currentBuffer.substr(0, pos);
-        currentBuffer.erase(0, pos + 2);
-        std::cout << "message: " << command << "$" << std::endl;
-        parser.parseMessage(client, command, server);
-    }
-    client.setMesagge(currentBuffer);
-}
-
 int main(int ar, char const *argv[])
 {
     if (ar !=3)
@@ -161,7 +146,7 @@ int main(int ar, char const *argv[])
                        continue;
                     }
                     
-                    handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser, irccserver);
+                    irccserver.handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        
