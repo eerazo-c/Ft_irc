@@ -2,6 +2,7 @@
 #define HEADER_HPP
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <cerrno>
 

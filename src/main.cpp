@@ -140,11 +140,11 @@ int main(int ar, char const *argv[])
                 else 
                 {
                     std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
-                    if (send(client_fd, "OK", 2, 0) == -1)
+                    /*if (send(client_fd, "OK", 2, 0) == -1)
                     {
                         std::cerr << "Error in send" << std::endl;
                        continue;
-                    }
+                    }*/
                     
                     irccserver.handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
