@@ -35,13 +35,6 @@ Server::Server(int port, std::string &password)
     {
         std::cerr << e.what() << '\n';
     }    
-
-    
-
-
-    
-    
-    
 }
 
 
@@ -99,14 +92,6 @@ int Server::listenServer()
     }
     return 1;
 }
-
-
-
-
-
-
-
-
 
 //  void Server::setEpoll()
 //  {

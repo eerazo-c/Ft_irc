@@ -16,7 +16,6 @@ class Client{
         std::string _user;
         std::string _message;
         AuthState _state;
-
         struct sockaddr_in _client_addr;
         socklen_t _addrlen;
 
@@ -33,7 +32,7 @@ class Client{
         std::string& getMessage();
         const AuthState& getState() const;
         const struct sockaddr_in& getClient_addres() const;
-         socklen_t& getAddressLen() ;
+        socklen_t& getAddressLen() ;
 
 
         void setFd(int fd);
@@ -42,4 +41,5 @@ class Client{
         void setMesagge(const std::string& message);
         void setState(AuthState state);
         void setClient_addres();
+		void WritePrefix(std::string const &_message); //eli funtion
 };

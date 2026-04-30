@@ -54,6 +54,10 @@ class Server
 			return (_channels);
 		};
 
+		std::string servername(void) const {
+			return (this->servername_);
+		}
+
     class Error_fd : public std::exception
     {
         virtual const char * what() const throw();

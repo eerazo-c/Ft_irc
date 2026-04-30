@@ -35,11 +35,14 @@ void Client::setUser(const std::string& user){_user = user;}
 void Client::setMesagge(const std::string& message){_message = message;}
 void Client::setState(AuthState state){_state = state;}
 
-
-
 void Client::setClient_addres()
 {
     std::memset(&this->_client_addr, 0, sizeof(this->_client_addr));   
     this->_addrlen = sizeof(_client_addr);
 }
 
+//eli funtion
+void Client::WritePrefix(std::string const _message)
+{
+	Write(Server::irccserver->servername(), _message);
+}
