@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*   ChannelManager.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,45 +9,23 @@
 /*   Updated: 2026/04/30 19:37:08 by elerazo-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Channel.hpp"
+#include "ChannelManager.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 #include "Command.hpp"
 
-Channel::Channel(std::string &name) : _name(name)
+ChannelManager::ChannelManager()
 {
 
 }
 
-Channel::~Channel(){
+ChannelManager::~ChannelManager(){
 
 }
 
-bool Channel::isMember(Client &client)
+void ChannelManager::partAll(Client &client)
 {
-	int fd = client.getFd();
-
-	if (_clients.find(fd) != _clients.end())
-		return true;
-	else 
-		return false;
-}
-
-void Channel::addClient(Client &client)
-{
-	int fd = client.getFd();
-
-	if (isMember(client))
-		return;
-
-    _clients.insert(std::make_pair(fd, &client));
-}
-
-void Channel::removeClient(Client &client)
-{
-	int fd = client.getFd();
-
-	std::map<int, Client*>::iterator it = _clients.find(fd);
-
-	if (it != _clients.end())
-		_clients.erase(it);
+	std::map<std::string, ChannelManager>::iterator it;
+	for (it = _channel.begin(); it != _channel.end(); ++it)
+		Part(client, it->first, "");
 }

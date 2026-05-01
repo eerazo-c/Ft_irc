@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "Command.hpp"
 #include "Channel.hpp"
+#include "Message.hpp"
 #include <iterator>
 #include <locale>
 
@@ -38,7 +39,7 @@ void User::execute(Client& client, std::vector<std::string> args, Server &server
     std::cout << "User execute" << std::endl;
 }
 
-Join::~Join() : command("JOIN", 1, 2, true)
+Join::~Join()
 {
 
 }
@@ -80,7 +81,7 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 	}
 }
 
-Part::~Part() : command("Part", 1, 2, true)
+Part::~Part()
 {
 
 }
@@ -88,7 +89,7 @@ Part::~Part() : command("Part", 1, 2, true)
 void Part::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
 	if (args.empty() || args[0].empty())
-		return (client->WritePrefix(ERR_NEEDMOREPARAMS(client->nickname(), name_)));
+		return (client.WritePrefix(ERR_NEEDMOREPARAMS(client._nick(), _name)));
 
 	std::string message;
 	if (args.size() > 1)
@@ -104,7 +105,7 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
     std::cout << "Part execute" << std::endl;
 }
 
-Quit::~Quit("Quit", 1, 2, true)
+Quit::~Quit()
 {
 
 }
@@ -118,9 +119,47 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 	else 
 		message = "";
 	
-	Log() << client->nickname() << ": " << message;
+	Log() << client->_nick() << ": " << message;
 	
 	server._channels().CloseClient(client.socket(), "Quit: " + message);
 
 	std::cout << "Quit execute" << std::endl;
+}
+
+PrivMsg::PrivMsg(void)
+{
+}
+
+void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
+	if (args.empty())
+		return (client->WritePrefix(ERR_NORECIPIENT(client._nick(), _name)));
+	else if (args.size() == 1)
+		return (client->WritePrefix(ERR_NOTEXTTOSEND(client->_nick())));
+
+	std::string message = args[1];
+	std::string target;
+	std::stringstream ss(args[0]);
+
+	while (std::getline(ss, target, ','))
+	{
+		Client *dest = NULL;
+		Channel *chan = NULL;
+
+		if (target.find('!') != std::string::npos)
+			dest = server.clients().Search(target);
+		else
+		{
+			std::string nick = target.substr(0, target.find('!'));
+			dest = server.clients().Search(nick);
+		}
+
+		if (dest)
+			std::cout << dest.client.mask() << _name + << " " + << client._nick() + << " :" + << message;
+
+		else if ((chan = server.channels().Search(target)))
+			std::cout << chan.client << _name + << " " + << chan._name() + << " :" + << message;
+		else
+			client.WritePrefix(ERR_NOSUCHNICK(client._nick(), target));
+	}
 }

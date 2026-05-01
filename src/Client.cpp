@@ -1,4 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/01 17:14:04 by elerazo-          #+#    #+#             */
+/*   Updated: 2026/05/01 17:19:25 by elerazo-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "Client.hpp"
+#include "header.hpp"
 
 Client::Client() : _fd(-1), _nick(""), _user(""), _message(""), _state(UNREGISTERED){}
 
@@ -42,7 +54,7 @@ void Client::setClient_addres()
 }
 
 //eli funtion
-void Client::WritePrefix(std::string const _message)
+void Client::WritePrefix(std::string const &_message)
 {
-	Write(Server::irccserver->servername(), _message);
+	std::cout << _message << std::endl;
 }

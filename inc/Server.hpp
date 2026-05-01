@@ -4,6 +4,8 @@
 #include "header.hpp"
 #include "Channel.hpp"
 
+class Channel;
+
 class Server 
 {
     private:
@@ -54,9 +56,7 @@ class Server
 			return (_channels);
 		};
 
-		std::string servername(void) const {
-			return (this->servername_);
-		}
+		std::string servername(void) const;
 
     class Error_fd : public std::exception
     {

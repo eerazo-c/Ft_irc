@@ -138,3 +138,9 @@ std::map<int, Client>& Server::getClients(){ return _clients;}
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
 // struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}
+
+//eli function
+std::string Server::servername(void) const 
+{
+	return (this->servername());
+}

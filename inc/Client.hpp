@@ -1,6 +1,7 @@
 #pragma once
 
 #include "header.hpp"
+#include "Server.hpp"
 
 class Client{
     public:

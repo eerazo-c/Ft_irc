@@ -12,6 +12,7 @@
 
 #pragma once
 #include "header.hpp"
+#include <sstream>
 
 class Command 
 {
@@ -60,5 +61,12 @@ class Quit : public Command
 {
 	public:
 		~Quit();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class PrivMsg : public Command
+{
+	public:
+		~PrivMsg();
 		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
