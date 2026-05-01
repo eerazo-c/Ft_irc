@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "Server.hpp"
 
 Server::Server() : _port_s(0),_password(""),_server_socket(-1)
 {
@@ -8,7 +8,7 @@ Server::Server() : _port_s(0),_password(""),_server_socket(-1)
 
 Server &Server::operator=(const Server &orignal)
 {
-    if (this != &orignal) {}return *this;
+    if (this != &orignal){} return *this;
 }
 //
 Server::Server(const Server &to_copy)
@@ -36,17 +36,22 @@ Server::Server(int port, std::string &password)
         std::cerr << e.what() << '\n';
     }    
 
-    
-
-
-    
-    
+    _commands["PASS"] = new Pass();
+	_commands["JOIN"] = new Join();
+	_commands["NICK"] = new Nick();
+	_commands["PART"] = new Part();
+	_commands["QUIT"] = new Quit();
+	_commands["USER"] = new User();
     
 }
 
 
 Server::~Server()
 {
+    std::map<std::string, Command*>::iterator it;
+    for (it = _commands.begin(); it != _commands.end(); ++it){
+        delete it->second;
+    }
     // cerrar los fd de los clientes tambien
     close (_server_socket);
 }
@@ -105,9 +110,27 @@ int Server::sendhandshake(int client_fd)
     return (send(client_fd, "OK",2 , 0));
 }
 
+void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
+    client.setMesagge(client.getMessage() + tempBuffer);
 
+    std::size_t pos = 0;
+    std::string currentBuffer = client.getMessage();
 
+    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
+        std::string command = currentBuffer.substr(0, pos);
+        currentBuffer.erase(0, pos + 2);
+        std::cout << "message: " << command << "$" << std::endl;
+        parser.parseMessage(client, command, *this);
+    }
+    client.setMesagge(currentBuffer);
+}
 
+void Server::executeCommand(Client& client, IrcMessage& message){
+    std::map<std::string, Command*>::const_iterator it = _commands.find(message.command);
+    if (it != _commands.end()){
+        it->second->execute(client, message.params, *this);
+    }
+}
 
 
 
@@ -152,6 +175,7 @@ int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
 
 std::map<int, Client>& Server::getClients(){ return _clients;}
+const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}

@@ -1,9 +1,14 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #pragma once
 
-#include "header.h"
+#include "header.hpp"
+#include "Parser.hpp"
+
+class Command;
+class Parser;
+struct IrcMessage;
 
 class Server 
 {
@@ -14,11 +19,11 @@ class Server
         struct sockaddr_in _server_address;
 
         std::map<int ,Client> _clients;
+        std::map<std::string, Command*> _commands;
         Server();       
-    public:
-        
         Server(const Server &to_copy);
         Server &operator=(const Server &orignal);
+
     public:
         
         Server(int port, std::string &password);
@@ -32,6 +37,9 @@ class Server
         int listenServer();
         int sendhandshake(int client_fd);
 
+        void handleClientData(Client& client , const std::string& tempBuffer, Parser& parser);
+        void executeCommand(Client& client, IrcMessage& message);
+
         void setPort(int port);
         void setPass(std::string pass);
         void setServer_socket(int socket);
@@ -40,6 +48,7 @@ class Server
 
         void addClient(int fd, Client client);
         std::map<int ,Client>& getClients();
+        const std::map<std::string, Command*>& getCommands() const;
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;

@@ -1,59 +1,20 @@
-#include "header.h"
-#include "Server.h"
+#include "header.hpp"
 
-void printElement(std::string str){
-    std::cout << "argument: " << str << std::endl;
-}
+//std::map<int, Client> clients;
 
-void parser(std::string buffer){
-    std::string command;
-    std::vector<std::string> params;
-    std::string trailing_param;
-    size_t pos = std::string::npos;
-    size_t trailing_pos = std::string::npos;
-
-    if ((pos = buffer.find(" ")) != std::string::npos){
-        command = buffer.substr(0, pos);
-        buffer.erase(0, pos + 1);
+int  setNonBlocking(int fd)
+{
+    int flags; 
+    while ((flags = fcntl(fd, F_GETFL, 0)) == -1)
+    {
+        if (errno != EINTR)
+            return -1;
     }
-    else{
-        command = buffer;
-        buffer.clear();
+    while (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        if (errno != EINTR)  
+            return -1;
     }
-    std::cout << "command: " << command << std::endl;
-
-    if ((trailing_pos = buffer.find(" :")) != std::string::npos){
-        trailing_param = buffer.substr(trailing_pos + 2);
-        buffer.erase(trailing_pos);
-        if (!trailing_param.empty()){
-            std::cout << "trailing argument: " << trailing_param << std::endl;
-        }
-    }
-
-    while((pos = buffer.find(' ')) != std::string::npos){
-        std::string token = buffer.substr(0, pos);
-        if (!token.empty())
-            params.push_back(token);
-        buffer.erase(0, pos + 1);
-    }
-    params.push_back(buffer);
-
-    std::for_each(params.begin(), params.end(), printElement);
-}
-
-void handleClientData(Client& client , std::string tempBuffer){
-    client.setMesagge(client.getMessage() + tempBuffer);
-
-    std::size_t pos = 0;
-    std::string currentBuffer = client.getMessage();
-
-    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
-        std::string command = currentBuffer.substr(0, pos);
-        currentBuffer.erase(0, pos + 2);
-        std::cout << "message: " << command << "$" << std::endl;
-        parser(command);
-    }
-    client.setMesagge(currentBuffer);
+    return 1;
 }
 
 int main(int ar, char const *argv[])
@@ -96,6 +57,8 @@ int main(int ar, char const *argv[])
         std::cerr << "Error in epoll_ctl" << std::endl;
         return 1;
     }
+
+    Parser parser;
 
     while (true)
     { 
@@ -172,7 +135,8 @@ int main(int ar, char const *argv[])
                         std::cerr << "Error in handshake" << std::endl;
                        continue;
                     }
-                    handleClientData(irccserver.getClients()[client_fd], std::string(buffer));
+                    
+                    irccserver.handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        
