@@ -24,7 +24,7 @@ int main(int ar, char const *argv[])
         return 1;   
     
     std::string in_password (argv[2]);
-    Server irccserver (std::atoi(argv[1]), in_password);
+    Server irccserver (std::atoi(argv[1]), in_password, "INEA_ecuatorial");
     std::memset(&(irccserver.getServer_address()), 0, sizeof(irccserver.getServer_address()));
     try
     {    

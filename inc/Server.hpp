@@ -17,6 +17,7 @@ class Server
         std::string  _password;
         int _server_socket;
         struct sockaddr_in _server_address;
+        std::string _serverName;
 
         std::map<int ,Client> _clients;
         std::map<std::string, Command*> _commands;
@@ -26,7 +27,7 @@ class Server
 
     public:
         
-        Server(int port, std::string &password);
+        Server(int port, std::string &password, const char *serverN);
         ~Server();
 
         int setNonBlocking_socket(int socket_s);
@@ -44,7 +45,7 @@ class Server
         void setPass(std::string pass);
         void setServer_socket(int socket);
         void setServer_address();
-       
+        void setServerName(const char * sname);
 
         void addClient(int fd, Client client);
         std::map<int ,Client>& getClients();
@@ -52,6 +53,7 @@ class Server
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;
+        std::string getServerName();
         struct sockaddr_in& getServer_address();
         // para luego el tipo de exception 
     class Error_fd : public std::exception

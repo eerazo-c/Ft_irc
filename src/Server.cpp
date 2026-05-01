@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _port_s(0),_password(""),_server_socket(-1)
+Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
 {
     std::memset(&this->_server_address, 0, sizeof(this->_server_address));
     std::cout << "no deberias estar haciendo esto;" << std::endl;
@@ -16,9 +16,15 @@ Server::Server(const Server &to_copy)
     *this = to_copy;
 }
 
-Server::Server(int port, std::string &password)
+void Server::setServerName(const char *sname)
 {
-    
+    this->_serverName = sname;
+}
+
+Server::Server(int port, std::string &password,const char *serverN)
+{
+    setServerName(serverN);
+
     try
     {
         setPort(port);
@@ -173,7 +179,7 @@ std::string Server::getPass()const { return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
-
+std::string Server::getServerName(){ return _serverName;}
 std::map<int, Client>& Server::getClients(){ return _clients;}
 const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
