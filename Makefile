@@ -12,11 +12,11 @@
 
 NAME		=	ircserv
 CC			=	c++
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -I inc/
+CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
 SRCS		=	main.cpp Server.cpp Channel.cpp Client.cpp \
-				Command.cpp Parser.cpp
+				Command.cpp Parser.cpp funtions_aux.cpp
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
 DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})

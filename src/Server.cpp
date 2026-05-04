@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _port_s(0),_password(""),_server_socket(-1)
+Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
 {
     std::memset(&this->_server_address, 0, sizeof(this->_server_address));
     std::cout << "no deberias estar haciendo esto;" << std::endl;
@@ -8,7 +8,7 @@ Server::Server() : _port_s(0),_password(""),_server_socket(-1)
 
 Server &Server::operator=(const Server &orignal)
 {
-    if (this != &orignal) {}return *this;
+    if (this != &orignal){} return *this;
 }
 //
 Server::Server(const Server &to_copy)
@@ -16,9 +16,15 @@ Server::Server(const Server &to_copy)
     *this = to_copy;
 }
 
-Server::Server(int port, std::string &password)
+void Server::setServerName(const char *sname)
 {
-    
+    this->_serverName = sname;
+}
+
+Server::Server(int port, std::string &password,const char *serverN)
+{
+    setServerName(serverN);
+
     try
     {
         setPort(port);
@@ -35,11 +41,21 @@ Server::Server(int port, std::string &password)
     {
         std::cerr << e.what() << '\n';
     }    
+    _commands["PASS"] = new Pass();
+	_commands["JOIN"] = new Join();
+	_commands["NICK"] = new Nick();
+	_commands["PART"] = new Part();
+	_commands["QUIT"] = new Quit();
+	_commands["USER"] = new User();    
 }
 
 
 Server::~Server()
 {
+    std::map<std::string, Command*>::iterator it;
+    for (it = _commands.begin(); it != _commands.end(); ++it){
+        delete it->second;
+    }
     // cerrar los fd de los clientes tambien
     close (_server_socket);
 }
@@ -60,7 +76,7 @@ int Server::setNonBlocking_socket(int socket_s)
             return -1;
     }
     while (fcntl(socket_s, F_SETFL, flags | O_NONBLOCK) == -1) {
-        if (errno != EINTR)  
+        if (errno != EINTR)
             return -1;
     }
     return 1;
@@ -91,6 +107,33 @@ int Server::listenServer()
         return -1;
     }
     return 1;
+}
+
+int Server::sendhandshake(int client_fd)
+{
+    return (send(client_fd, "OK",2 , 0));
+}
+
+void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
+    client.setMesagge(client.getMessage() + tempBuffer);
+
+    std::size_t pos = 0;
+    std::string currentBuffer = client.getMessage();
+
+    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
+        std::string command = currentBuffer.substr(0, pos);
+        currentBuffer.erase(0, pos + 2);
+        std::cout << "message: " << command << "$" << std::endl;
+        parser.parseMessage(client, command, *this);
+    }
+    client.setMesagge(currentBuffer);
+}
+
+void Server::executeCommand(Client& client, IrcMessage& message){
+    std::map<std::string, Command*>::const_iterator it = _commands.find(message.command);
+    if (it != _commands.end()){
+        it->second->execute(client, message.params, *this);
+    }
 }
 
 //  void Server::setEpoll()
@@ -132,8 +175,9 @@ std::string Server::getPass()const { return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
-
+std::string Server::getServerName(){ return _serverName;}
 std::map<int, Client>& Server::getClients(){ return _clients;}
+const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}

@@ -1,65 +1,90 @@
 #include "Parser.hpp"
 
-Parser::Parser(){
-    _commands["PASS"] = new Pass();
-	//_commands["INVITE"] = new Invite();
-	_commands["JOIN"] = new Join();
-	//_commands["KICK"] = new Kick();
-	//_commands["MODE"] = new Mode();
-	_commands["NICK"] = new Nick();
-	_commands["PART"] = new Part();
-	//_commands["PRIVMSG"] = new PrivMsg();
-	_commands["QUIT"] = new Quit();
-	//_commands["TOPIC"] = new Topic();
-	_commands["USER"] = new User();
-}
+Parser::Parser(){}
 
-Parser::~Parser(){
-    std::map<std::string, Command*>::iterator it;
-    for (it = _commands.begin(); it != _commands.end(); ++it){
-        delete it->second;
-    }
-}
+Parser::~Parser(){}
 
 static void printElement(std::string str){
     std::cout << "argument: " << str << std::endl;
 }
 
-void Parser::parseMessage(Client& client, std::string message, Server& server) const{
-    (void)client;
-    std::string command;
-    std::vector<std::string> params;
-    std::string trailing_param;
-    size_t pos = std::string::npos;
-    size_t trailing_pos = std::string::npos;
+void Parser::lTrim(std::string& str) const{
+    size_t start = str.find_first_not_of(" \t");
 
-    if ((pos = message.find(" ")) != std::string::npos )
-        command = message.substr(0, pos);
-    else{
-        command = message;
-        message.clear();
+    if (start == std::string::npos)
+        str.clear();
+    else if (start > 0)
+        str.erase(0, start);
+}
+
+void Parser::toUpper(std::string& str) const{
+    for (size_t i = 0; i < str.size(); i++){
+        char lower = str[i];
+        str[i] = toupper(lower);
     }
-    std::cout << "command: " << command << std::endl;
+}
 
-    if ((trailing_pos = message.find(" :")) != std::string::npos){
-        trailing_param = message.substr(trailing_pos + 2);
-        message.erase(trailing_pos);
-        message.erase(0, pos);
-        if (!trailing_param.empty()){
-            std::cout << "trailing argument: " << trailing_param << std::endl;
+IrcMessage Parser::tokenize(std::string& message) const{
+    IrcMessage ircMessage;
+    size_t pos = std::string::npos;
+
+    if (message[0] == ':'){
+        if ((pos = message.find(" ")) != std::string::npos ){
+            ircMessage.prefix = message.substr(1, pos - 1);
+            message.erase(0, pos);
+            lTrim(message);
+        }
+        else{
+            ircMessage.prefix = message;
+            message.clear();
         }
     }
-    else
-        message.erase(0, pos + 1);
+    if (!ircMessage.prefix.empty())
+        std::cout << "prefix: " << ircMessage.prefix << std::endl;
 
-    while((pos = message.find(' ')) != std::string::npos){
-        std::string token = message.substr(0, pos);
-        if (!token.empty())
-            params.push_back(token);
-        message.erase(0, pos + 1);
+    if ((pos = message.find(" ")) != std::string::npos ){
+        ircMessage.command = message.substr(0, pos);
+        message.erase(0, pos);
+        lTrim(message);
     }
+    else{
+        ircMessage.command = message;
+        message.clear();
+    }
+    toUpper(ircMessage.command);
+    std::cout << "command: " << ircMessage.command << std::endl;
+
+    while(!message.empty()){
+        if (message[0] == ':'){
+            ircMessage.params.push_back(message.substr(1));
+            break;
+        }
+
+        if ((pos = message.find(" ")) != std::string::npos){
+            ircMessage.params.push_back(message.substr(0, pos));
+            message.erase(0, pos);
+            lTrim(message);
+        }
+        else{
+            ircMessage.params.push_back(message);
+            message.clear();
+        }
+    }
+
+    std::for_each(ircMessage.params.begin(), ircMessage.params.end(), printElement);
+
+    return ircMessage;
+}
+
+void Parser::parseMessage(Client& client, std::string& message, Server& server) const{
+    if (message.empty())
+        return;
+
+    lTrim(message);
+
+    IrcMessage ircMessage = tokenize(message);
     
-    if (!message.empty()){
+    /*if (!message.empty()){
         params.push_back(message);
         std::for_each(params.begin(), params.end(), printElement);
     }
@@ -67,4 +92,6 @@ void Parser::parseMessage(Client& client, std::string message, Server& server) c
     std::map<std::string, Command*>::const_iterator it = _commands.find(command);
     if (it != _commands.end())
         it->second->execute(client, params, server);
+}*/
+    server.executeCommand(client, ircMessage);
 }

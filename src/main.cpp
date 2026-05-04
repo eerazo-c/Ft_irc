@@ -17,34 +17,14 @@ int  setNonBlocking(int fd)
     return 1;
 }
 
-void handleClientData(Client& client , std::string tempBuffer, Parser& parser, Server& server){
-    client.setMesagge(client.getMessage() + tempBuffer);
-
-    std::size_t pos = 0;
-    std::string currentBuffer = client.getMessage();
-
-    while((pos = currentBuffer.find("\r\n")) != std::string::npos){
-        std::string command = currentBuffer.substr(0, pos);
-        currentBuffer.erase(0, pos + 2);
-        std::cout << "message: " << command << "$" << std::endl;
-        parser.parseMessage(client, command, server);
-    }
-    client.setMesagge(currentBuffer);
-}
-
 int main(int ar, char const *argv[])
 {
-    if (ar !=3)
-    {
-        std::cout << RED << "ERROR: Invalid Arguments" << RESET <<
-        std::endl << YELLOW << "usage: /ircserv <port> <password>" << RESET<< std::endl;
-        return 1;
-    }
     
-    std::string in_port (argv[1]);
+    if(check_args(ar , argv[1], argv[2]) == -1)
+        return 1;   
+    
     std::string in_password (argv[2]);
-    //Server main_server(in_port, in_password);
-    Server irccserver (std::atoi(argv[1]), in_password);
+    Server irccserver (std::atoi(argv[1]), in_password, "INEA_ecuatorial");
     std::memset(&(irccserver.getServer_address()), 0, sizeof(irccserver.getServer_address()));
     try
     {    
@@ -52,8 +32,7 @@ int main(int ar, char const *argv[])
         irccserver.setSockectReusable();    
         irccserver.bindSocketToServer();
         irccserver.listenServer();
-        std::cout << "Escuchando ..." << std::endl;
-     
+        ft_message("Escuchando ...", NULL,1);    
     }
     catch(const std::exception& e)
     {
@@ -83,9 +62,6 @@ int main(int ar, char const *argv[])
 
     while (true)
     { 
-        // struct sockaddr_in client_addr;
-        // socklen_t addrlen = sizeof(client_addr);
-
         int num_eventos = epoll_wait(epoll_fd, events_epoll, 10, -1);
         if(num_eventos < 0)
         {
@@ -95,7 +71,6 @@ int main(int ar, char const *argv[])
                 continue;
             }           
         }
-
         for (int i = 0; i < num_eventos; i++)
         {
             if (events_epoll[i].data.fd == irccserver.getServer_socket())
@@ -116,7 +91,7 @@ int main(int ar, char const *argv[])
                 if (irccserver.setNonBlocking_socket(new_socket) == -1)
                 {
                     std::cerr << "Error al fcntl 2" << std::endl;
-                    return 1;
+                    break;
                 }
                 
                 irccserver.addClient(new_socket,nclient);
@@ -130,7 +105,6 @@ int main(int ar, char const *argv[])
             } 
             else 
             {
-                // B) Si el evento es en otro socket: ES UN CLIENTE MANDANDO DATOS
                 int client_fd = events_epoll[i].data.fd;
                 char buffer[1024] = {0};
                 int bytes = recv(client_fd, buffer, sizeof(buffer) -1 , 0);
@@ -154,14 +128,15 @@ int main(int ar, char const *argv[])
                 }
                 else 
                 {
+                    
                     std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
-                    if (send(client_fd, "OK", 2, 0) == -1)
+                    if (irccserver.sendhandshake(client_fd) == -1)
                     {
-                        std::cerr << "Error in send" << std::endl;
+                        std::cerr << "Error in handshake" << std::endl;
                        continue;
                     }
                     
-                    handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser, irccserver);
+                    irccserver.handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        

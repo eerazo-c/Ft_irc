@@ -6,14 +6,19 @@ class Client;
 class Command;
 class Server;
 
-class Parser{
-    private:
-        std::map<std::string, Command*> _commands;
-        Parser(const Parser &other);
-        Parser &operator=(const Parser &other);
+struct IrcMessage{
+        std::string prefix;
+        std::string command;
+        std::vector<std::string> params;
+};
 
+class Parser{
     public:
-        Parser();       
+        Parser();
         ~Parser();
-        void parseMessage(Client &client, std::string message, Server &server) const;
+
+		void lTrim(std::string& str) const;
+        void toUpper(std::string& str) const;
+        IrcMessage tokenize(std::string& message) const;
+        void parseMessage(Client &client, std::string& message, Server &server) const;
 };
