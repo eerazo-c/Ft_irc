@@ -2,6 +2,7 @@
 
 #include "header.hpp"
 #include "Server.hpp"
+class Server;
 
 class Client{
     public:
@@ -19,6 +20,7 @@ class Client{
         AuthState _state;
         struct sockaddr_in _client_addr;
         socklen_t _addrlen;
+	//	bool _closing;
 
     public:
         Client();
@@ -42,5 +44,8 @@ class Client{
         void setMesagge(const std::string& message);
         void setState(AuthState state);
         void setClient_addres();
+		//void set_closing(bool closing); //eli funtion
+
 		void WritePrefix(std::string const &_message); //eli funtion
+		void CloseClient(Server &server); //elifuntion
 };

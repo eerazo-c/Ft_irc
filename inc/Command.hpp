@@ -9,10 +9,10 @@
 /*   Updated: 2026/04/21 22:15:04 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #pragma once
 #include "header.hpp"
 #include <sstream>
+#include <cmath>
 
 class Command 
 {

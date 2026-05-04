@@ -142,5 +142,5 @@ std::map<int, Client>& Server::getClients(){ return _clients;}
 //eli function
 std::string Server::servername(void) const 
 {
-	return (this->servername());
+	return ("MyircServer");
 }

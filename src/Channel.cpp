@@ -13,6 +13,11 @@
 #include "Client.hpp"
 #include "Command.hpp"
 
+Channel::Channel()
+{
+
+}
+
 Channel::Channel(std::string &name) : _name(name)
 {
 

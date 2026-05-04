@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "Client.hpp"
 #include "header.hpp"
+#include "Server.hpp"
 
 Client::Client() : _fd(-1), _nick(""), _user(""), _message(""), _state(UNREGISTERED){}
 
@@ -57,4 +58,24 @@ void Client::setClient_addres()
 void Client::WritePrefix(std::string const &_message)
 {
 	std::cout << _message << std::endl;
+}
+
+//eli funtion
+/*void Client::set_closing(bool closing)
+{
+	_closing = closing;
+}
+*/
+
+//eli funtion
+void Client::CloseClient(Server &server)
+{
+	std::map<int, Client>::iterator it(server.getClients().find(_fd));
+	if (it != server.getClients().end())
+	{
+		Client &client(it->second);
+		//client->set_closing(true);
+		std::cout << &client << "ERROR :Closing connection: " + _message << std::endl;
+		std::cout << "Connection " << _fd << " closed: " << _message << std::endl;
+	}
 }

@@ -23,6 +23,14 @@ ChannelManager::~ChannelManager(){
 
 }
 
+void ChannelManager::Part(Client &client, const std::string &channelName, const std::string &reason)
+{
+	(void)client;
+	(void)channelName;
+	(void)reason;
+	std::cout << "entre a Part de channel Manager" << std::endl;
+}
+
 void ChannelManager::partAll(Client &client)
 {
 	std::map<std::string, ChannelManager>::iterator it;

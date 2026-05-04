@@ -25,6 +25,7 @@ class Channel {
 //	std::map<int, Client *> _operators;
 
 	public:
+	Channel();
 	Channel(std::string &name);
 	~Channel();
 

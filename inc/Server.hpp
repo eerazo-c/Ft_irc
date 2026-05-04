@@ -1,8 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/02 18:07:30 by elerazo-          #+#    #+#             */
+/*   Updated: 2026/05/02 18:07:51 by elerazo-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
 #include "header.hpp"
 #include "Channel.hpp"
+#include "Client.hpp"
 
 class Channel;
 
@@ -18,12 +30,10 @@ class Server
         Server();
 
 		//canales eli add
-		std::map<std::string, Channel> _channels;
-
-    public:
-        
+		std::map<std::string, Channel> _channels;        
         Server(const Server &to_copy);
         Server &operator=(const Server &orignal);
+
     public:
         
         Server(int port, std::string &password);
@@ -56,7 +66,7 @@ class Server
 			return (_channels);
 		};
 
-		std::string servername(void) const;
+		std::string servername(void) const; //eli add
 
     class Error_fd : public std::exception
     {

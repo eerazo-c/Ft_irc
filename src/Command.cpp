@@ -14,6 +14,7 @@
 #include "Message.hpp"
 #include <iterator>
 #include <locale>
+#include <cmath>
 
 Pass::~Pass(){}
 void Pass::execute(Client& client, std::vector<std::string> args, Server &server) const{
@@ -78,6 +79,7 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 		chan.addClient(client);
 
 		// aquí luego meter Write()
+		std::cout << "execute join" << std::endl;
 	}
 }
 
@@ -89,19 +91,19 @@ Part::~Part()
 void Part::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
 	if (args.empty() || args[0].empty())
-		return (client.WritePrefix(ERR_NEEDMOREPARAMS(client._nick(), _name)));
+		return (client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "Part"))); //aqui modifique _name x args
 
 	std::string message;
 	if (args.size() > 1)
-		messages = args[1];
+		message = args[1];
 	else 
-		messages = "";
+		message = "";
 
 	std::string chan;
 	std::stringstream ss(args[0]);
 
 	while (std::getline(ss, chan, ','))
-		server._channels().Part(client, chan, message);
+		server.getChannels()[chan].removeClient(client);
     std::cout << "Part execute" << std::endl;
 }
 
@@ -119,23 +121,72 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 	else 
 		message = "";
 	
-	Log() << client->_nick() << ": " << message;
+	std::cout << client.getNick() << ": " << message << std::endl;
 	
-	server._channels().CloseClient(client.socket(), "Quit: " + message);
+	client.CloseClient(server);
 
 	std::cout << "Quit execute" << std::endl;
 }
 
-PrivMsg::PrivMsg(void)
+PrivMsg::~PrivMsg(void)
 {
 }
 
 void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
+    if (args.empty())
+        return (client.WritePrefix(ERR_NORECIPIENT(client.getNick(), "PRIVMSG")));
+    if (args.size() == 1)
+        return (client.WritePrefix(ERR_NOTEXTTOSEND(client.getNick())));
+
+    std::string target = args[0];
+    std::string message = args[1];
+
+    Client *dest = NULL;
+
+    //buscar cliente por nick
+    std::map<int, Client>& clients = server.getClients();
+
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (it->second.getNick() == target)
+        {
+            dest = &it->second;
+            break;
+        }
+    }
+
+    if (dest)
+    {
+        std::cout << client.getNick() << " -> " << dest->getNick()
+                  << " : " << message << std::endl;
+        return;
+    }
+
+    // buscar canal
+    std::map<std::string, Channel>& channels = server.getChannels();
+
+    std::map<std::string, Channel>::iterator it = channels.find(target);
+
+    if (it != channels.end())
+    {
+        std::cout << client.getNick() << " -> channel "
+                  << target << " : " << message << std::endl;
+        return;
+    }
+
+    // no existe nada
+    client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));
+}
+
+
+/*
+void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
 	if (args.empty())
-		return (client->WritePrefix(ERR_NORECIPIENT(client._nick(), _name)));
+		return (client.WritePrefix(ERR_NORECIPIENT(client.getNick(), "PrivMsg")));
 	else if (args.size() == 1)
-		return (client->WritePrefix(ERR_NOTEXTTOSEND(client->_nick())));
+		return (client.WritePrefix(ERR_NOTEXTTOSEND(client.getNick())));
 
 	std::string message = args[1];
 	std::string target;
@@ -147,7 +198,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 		Channel *chan = NULL;
 
 		if (target.find('!') != std::string::npos)
-			dest = server.clients().Search(target);
+			dest = server.getClients().find(target);
 		else
 		{
 			std::string nick = target.substr(0, target.find('!'));
@@ -155,11 +206,13 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 		}
 
 		if (dest)
-			std::cout << dest.client.mask() << _name + << " " + << client._nick() + << " :" + << message;
+			std::cout << client.getNick() << " : " << message << std::endl;
 
-		else if ((chan = server.channels().Search(target)))
-			std::cout << chan.client << _name + << " " + << chan._name() + << " :" + << message;
+		else if ((chan = server.getChannels()[chan].find(target)))
+			std::cout << client.getNick() << " -> " << target << " : " << message << std::endl;
 		else
 			client.WritePrefix(ERR_NOSUCHNICK(client._nick(), target));
 	}
 }
+
+*/
