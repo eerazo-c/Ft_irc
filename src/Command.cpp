@@ -79,10 +79,10 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
         return;
     }
     
-    const std::map<int, Client>& clients = server.getClients();
-    std::map<int, Client>::const_iterator it;
+    const std::map<int, Client *>& clients = server.getClients();
+    std::map<int, Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it){
-        if (it->second.getNick() == nick){
+        if (it->second->getNick() == nick){
             oss << ":localhost 433 * " << nick << " :Nickname is already in use\r\n";
             errorMsg = oss.str();
             send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
@@ -168,24 +168,31 @@ Join::~Join()
 
 void Join::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
+	if (args.empty())
+		return ;
+	if (client.getState() != Client::REGISTERED)
+		return;
+
 	if (args.size() == 1 && args[0] == "0")
 	{
 		std::map<std::string, Channel> &channels = server.getChannels();
 
 		for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
 		{
-			it->second.removeClient(client);
+			if (it->second.isMember(client))
+				it->second.removeClient(client);
 		}
 		return;
 	}
-
-	// Parsear canales (#a,#b,#c)
+	
+	std::map<std::string, Channel> &channels = server.getChannels();
+	
 	std::stringstream ss(args[0]);
 	std::string chan_name;
 
 	while (std::getline(ss, chan_name, ','))
 	{
-		std::map<std::string, Channel> &channels = server.getChannels();
+		//std::map<std::string, Channel> &channels = server.getChannels();
 
 		if (channels.find(chan_name) == channels.end())
 			channels.insert(std::make_pair(chan_name, Channel(chan_name)));
@@ -195,10 +202,28 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 		//  Si ya está dentro, skip
 		if (chan.isMember(client))
 			continue;
-
+		std::cout << "Nick: [" << client.getNick() << "]\n";
+		std::cout << "User: [" << client.getUser() << "]\n";
 		//  Añadir cliente
 		chan.addClient(client);
 
+		// JOIN msg
+		std::string joinMsg = ":" + client.getNick() + "!" +
+			client.getUser() + "@localhost JOIN " + chan_name + "\r\n";
+
+		chan.broadcast(joinMsg);
+
+		//  NAMES
+		std::string users = chan.getUsersList();
+
+		std::string namesMsg = ":localhost 353 " + client.getNick() +
+			" = " + chan_name + " :" + users + "\r\n";
+
+		std::string endMsg = ":localhost 366 " + client.getNick() +
+			" " + chan_name + " :End of /NAMES list\r\n";
+
+		send(client.getFd(), namesMsg.c_str(), namesMsg.size(), 0);
+		send(client.getFd(), endMsg.c_str(), endMsg.size(), 0);
 		// aquí luego meter Write()
 		std::cout << "execute join" << std::endl;
 	}
@@ -223,9 +248,27 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 	std::string chan;
 	std::stringstream ss(args[0]);
 
+	std::map<std::string, Channel> &channels = server.getChannels();
+
 	while (std::getline(ss, chan, ','))
-		server.getChannels()[chan].removeClient(client);
-    std::cout << "Part execute" << std::endl;
+	{
+		std::map<std::string, Channel>::iterator it = channels.find(chan);
+
+		if (it == channels.end())
+			continue;
+
+		Channel &channel = it->second;
+
+		if (!channel.isMember(client))
+			continue;
+
+		std::string partMsg = ":" + client.getNick() + "!" +
+			client.getUser() + "@localhost PART " + chan +
+			" :" + message + "\r\n";
+
+		channel.broadcast(partMsg);
+		channel.removeClient(client);
+	}
 }
 
 Quit::~Quit()
@@ -241,12 +284,37 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 		message = args[0];
 	else 
 		message = "";
+
+	std::string quitMsg = ":" + client.getNick() +
+		" QUIT :" + message + "\r\n";
+
+	std::map<std::string, Channel> &channels = server.getChannels();
+
+	for (std::map<std::string, Channel>::iterator it = channels.begin();
+		 it != channels.end(); ++it)
+	{
+		Channel &chan = it->second;
+
+		if (chan.isMember(client))
+		{
+			chan.broadcast(quitMsg);
+			chan.removeClient(client);
+		}
+	}
+
+	/*std::string message;
+
+	if (!args.empty())
+		message = args[0];
+	else 
+		message = "";
 	
 	std::cout << client.getNick() << ": " << message << std::endl;
 	
 	client.CloseClient(server);
 
 	std::cout << "Quit execute" << std::endl;
+*/
 }
 
 PrivMsg::~PrivMsg(void)
@@ -256,34 +324,63 @@ PrivMsg::~PrivMsg(void)
 void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
     if (args.empty())
-        return (client.WritePrefix(ERR_NORECIPIENT(client.getNick(), "PRIVMSG")));
+	{
+        client.WritePrefix(ERR_NORECIPIENT(client.getNick(), "PRIVMSG"));
+		return ;
+	}
+
     if (args.size() == 1)
-        return (client.WritePrefix(ERR_NOTEXTTOSEND(client.getNick())));
+	{
+        client.WritePrefix(ERR_NOTEXTTOSEND(client.getNick()));
+		return ;
+	}
 
     std::string target = args[0];
-    std::string message = args[1];
 
-    Client *dest = NULL;
+    std::string message;
+    for (size_t i = 1; i < args.size(); i++)
+    {
+        if (i > 1)
+            message += " ";
+        message += args[i];
+    }
+
+    std::string fullMsg = ":" + client.getNick() + "!" + 
+		client.getUser() + "@localhost PRIVMSG " + target + " :" + message + "\r\n";
+	
+//    Client *dest = NULL;
 
     //buscar cliente por nick
-    std::map<int, Client>& clients = server.getClients();
+    std::map<int, Client *>& clients = server.getClients();
 
-    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    for (std::map<int, Client *>::iterator it = clients.begin(); it != clients.end(); ++it)
     {
-        if (it->second.getNick() == target)
+        if (it->second->getNick() == target)
         {
-            dest = &it->second;
-            break;
+			send(it->second->getFd(), fullMsg.c_str(), fullMsg.size(), 0);
+
+            // opcional pero correcto en IRC: eco al emisor
+            send(client.getFd(), fullMsg.c_str(), fullMsg.size(), 0);
+            return;
+            //dest = it->second;
+            //break;
         }
     }
 
-    if (dest)
+   /* if (dest)
     {
+		std::string msg = ":" + client.getNick() + "!" +
+			client.getUser() + "@localhost PRIVMSG " +
+			dest->getNick() + " :" + message + "\r\n";
+
+		send(dest->getFd(), msg.c_str(), msg.size(), 0);
+		return;
+		
         std::cout << client.getNick() << " -> " << dest->getNick()
                   << " : " << message << std::endl;
         return;
     }
-
+*/
     // buscar canal
     std::map<std::string, Channel>& channels = server.getChannels();
 
@@ -291,10 +388,17 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 
     if (it != channels.end())
     {
-        std::cout << client.getNick() << " -> channel "
-                  << target << " : " << message << std::endl;
+		Channel& channel = it->second;
+
+        if (!channel.isMember(client))
+        {
+            client.WritePrefix(ERR_CANNOTSENDTOCHAN(client.getNick(), target));
+            return;
+        }
+
+        channel.broadcastExcept(client, fullMsg);
         return;
-    }
+	}
 
     // no existe nada
     client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));

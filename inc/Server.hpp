@@ -33,7 +33,7 @@ class Server
         struct sockaddr_in _server_address;
         std::string _serverName;
 
-        std::map<int ,Client> _clients;
+        std::map<int ,Client *> _clients;
 
 		//canales eli add
 		std::map<std::string, Channel> _channels;        
@@ -65,8 +65,8 @@ class Server
         void setServer_address();
         void setServerName(const char * sname);
 
-        void addClient(int fd, Client client);
-        std::map<int ,Client>& getClients();
+        void addClient(int fd, Client *client);
+        std::map<int ,Client *>& getClients();
         const std::map<std::string, Command*>& getCommands() const;
         std::string getPass() const ;
         int getPort() const;

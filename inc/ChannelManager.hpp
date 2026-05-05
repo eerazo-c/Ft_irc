@@ -12,7 +12,7 @@ class ChannelManager {
 	ChannelManager();
 	~Channel();
 	
-	Channel *Search(const std::string &name);
+//	Channel *Search(const std::string &name);
 	bool AddChannel(Channel &channel);
 	void RemoveChannel(Channel &channel);
 	bool Join(Client &client, const std::string &name);

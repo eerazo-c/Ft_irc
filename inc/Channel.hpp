@@ -31,6 +31,10 @@ class Channel {
 
 	const std::string& getName() const;
 	
+	void broadcast(const std::string &msg);
+	void broadcastExcept(Client &sender, const std::string &msg);
+	std::string getUsersList() const;
+
 	bool isMember(Client &client);
 	void addClient(Client &client);
 	void removeClient(Client &client);

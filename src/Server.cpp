@@ -60,11 +60,10 @@ Server::~Server()
     close (_server_socket);
 }
 
-
-void Server::addClient(int fd, Client cliente)
+void Server::addClient(int fd, Client *cliente)
 {
-    cliente.setFd(fd);
-    _clients.insert(std::pair<int, Client>(fd, cliente));
+    cliente->setFd(fd);
+    _clients.insert(std::pair<int, Client *>(fd, cliente));
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -111,7 +110,9 @@ int Server::listenServer()
 
 int Server::sendhandshake(int client_fd)
 {
-    return (send(client_fd, "OK",2 , 0));
+	(void)client_fd;
+	return (1);
+   // return (send(client_fd, " ",2 , 0));
 }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
@@ -176,7 +177,7 @@ int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
 std::string Server::getServerName(){ return _serverName;}
-std::map<int, Client>& Server::getClients(){ return _clients;}
+std::map<int, Client *>& Server::getClients(){ return _clients;}
 const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
 

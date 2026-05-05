@@ -84,14 +84,5 @@ void Parser::parseMessage(Client& client, std::string& message, Server& server) 
 
     IrcMessage ircMessage = tokenize(message);
     
-    /*if (!message.empty()){
-        params.push_back(message);
-        std::for_each(params.begin(), params.end(), printElement);
-    }
-
-    std::map<std::string, Command*>::const_iterator it = _commands.find(command);
-    if (it != _commands.end())
-        it->second->execute(client, params, server);
-}*/
     server.executeCommand(client, ircMessage);
 }

@@ -75,12 +75,14 @@ int main(int ar, char const *argv[])
         {
             if (events_epoll[i].data.fd == irccserver.getServer_socket())
             {
-                Client nclient;
-                nclient.getAddressLen() = sizeof (struct sockaddr_in);
+				//aqui la modificacion
+                Client *nclient = new Client();
+//				irccserver.addClient(new_socket, nclient);
+                nclient->getAddressLen() = sizeof (struct sockaddr_in);
 
                 int new_socket = accept(irccserver.getServer_socket(),
-                 (struct sockaddr *)&nclient.getClient_addres(),
-                  &nclient.getAddressLen());
+                 (struct sockaddr *)&nclient->getClient_addres(),
+                  &nclient->getAddressLen());
                 if(new_socket < 0)
                 { 
                     if(errno == EAGAIN || errno == EWOULDBLOCK)
@@ -136,7 +138,8 @@ int main(int ar, char const *argv[])
                        continue;
                     }
                     
-                    irccserver.handleClientData(irccserver.getClients()[client_fd], std::string(buffer), parser);
+                    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
+					//irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        

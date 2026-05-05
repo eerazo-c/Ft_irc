@@ -73,10 +73,10 @@ void Client::WritePrefix(std::string const &_message)
 //eli funtion
 void Client::CloseClient(Server &server)
 {
-	std::map<int, Client>::iterator it(server.getClients().find(_fd));
+	std::map<int, Client *>::iterator it(server.getClients().find(_fd));
 	if (it != server.getClients().end())
 	{
-		Client &client(it->second);
+		Client *client(it->second);
 		//client->set_closing(true);
 		std::cout << &client << "ERROR :Closing connection: " + _message << std::endl;
 		std::cout << "Connection " << _fd << " closed: " << _message << std::endl;

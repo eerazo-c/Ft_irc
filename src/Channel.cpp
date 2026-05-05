@@ -56,3 +56,33 @@ void Channel::removeClient(Client &client)
 	if (it != _clients.end())
 		_clients.erase(it);
 }
+
+void Channel::broadcast(const std::string &msg){
+	for (std::map<int, Client*>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it)
+	{
+		send(it->first, msg.c_str(), msg.size(), 0);
+	}
+}
+
+void Channel::broadcastExcept(Client &sender, const std::string &msg){
+	for (std::map<int, Client*>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it)
+	{
+		if (it->first != sender.getFd())
+			send(it->first, msg.c_str(), msg.size(), 0);
+	}
+}
+
+std::string Channel::getUsersList() const{
+	std::string list;
+
+	for (std::map<int, Client*>::const_iterator it = _clients.begin();
+		 it != _clients.end(); ++it)
+	{
+		if (!list.empty())
+			list += " ";
+		list += it->second->getNick();
+	}
+	return list;
+}
