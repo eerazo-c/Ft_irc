@@ -69,8 +69,13 @@ void Channel::broadcastExcept(Client &sender, const std::string &msg){
 	for (std::map<int, Client*>::iterator it = _clients.begin();
 		 it != _clients.end(); ++it)
 	{
-		if (it->first != sender.getFd())
-			send(it->first, msg.c_str(), msg.size(), 0);
+		Client* client = it->second;
+
+		if (client != &sender)
+			send(client->getFd(), msg.c_str(), msg.size(), 0);
+
+		/*if (it->first != sender.getFd())
+			send(it->first, msg.c_str(), msg.size(), 0);*/
 	}
 }
 

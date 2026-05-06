@@ -59,8 +59,16 @@ void Client::setClient_addres()
 
 //eli funtion
 void Client::WritePrefix(std::string const &_message)
-{
-	std::cout << _message << std::endl;
+{{
+	std::string msg = _message + "\r\n";
+
+	// (debug)
+	std::cout << msg;
+
+	//  cliente (HexChat)
+	send(this->getFd(), msg.c_str(), msg.size(), 0);
+}
+	//std::cout << _message << std::endl;
 }
 
 //eli funtion

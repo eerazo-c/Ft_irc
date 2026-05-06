@@ -20,6 +20,7 @@ class ChannelManager {
 		const std::string &reason);
 	
 	void partAll(Client &client);
+
 	/*
 	void Clean(void);
 	bool IsValidName(const std::string &name);

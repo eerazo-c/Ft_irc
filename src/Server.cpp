@@ -60,10 +60,17 @@ Server::~Server()
     close (_server_socket);
 }
 
-void Server::addClient(int fd, Client *cliente)
+void Server::addClient(int fd, Client *client)
 {
-    cliente->setFd(fd);
-    _clients.insert(std::pair<int, Client *>(fd, cliente));
+	//eli moficacion
+	/*if (fd != client->getFd())
+	{
+		std::cout << "ERROR: fd mismatch" << std::endl;
+		return;
+	}
+	_clients[fd] = client;*/
+    client->setFd(fd);
+    _clients.insert(std::pair<int, Client *>(fd, client));
 }
 
 int Server::setNonBlocking_socket(int socket_s)

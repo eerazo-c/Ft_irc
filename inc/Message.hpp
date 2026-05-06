@@ -24,9 +24,13 @@
 #define RPL_TOPIC(nick, channel) "332 " + (nick) + (channel) + ":<topic>"
 #define RPL_INVITING(nick, channel) "341 " +  (nick) + (channel)
 
+#define RPL_NAMREPLY() "353 " + (client) + (symbol) + (channel) + ": [prefix]" + (nick) +  [prefix] + (nick)
+#define RPL_ENDOFNAMES() "366 " + (client) + (channel) + ":End of /NAMES list"
+
 // Errores
 #define ERR_NOSUCHNICK(nick, target) "401 " + (nick) + (target) + ":No such nick/channel"
 #define ERR_NOSUCHCHANNEL(nick, channel) "403 " + (nick) + (channel) + ":No such channel"
+#define ERR_NOCREATEHAS(nick, channel) "403 " + (nick) +  " " + (channel) + ":You can't create channel without #"
 #define ERR_CANNOTSENDTOCHAN(nick, channel) "404 " + (nick) + (channel) + ":Cannot send to channel"
 #define ERR_NORECIPIENT(nick, command) "411 " + (nick) + ":No recipient given" + (command)
 #define ERR_NOTEXTTOSEND(nick) "412 " + (nick) + ":No text to send"

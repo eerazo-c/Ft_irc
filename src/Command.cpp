@@ -194,6 +194,13 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 	{
 		//std::map<std::string, Channel> &channels = server.getChannels();
 
+		if (chan_name.empty() || chan_name[0] != '#')
+		{
+			// opcional: enviar error IRC
+			 client.WritePrefix(ERR_NOCREATEHAS(client.getNick(), chan_name));
+			continue;
+		}
+
 		if (channels.find(chan_name) == channels.end())
 			channels.insert(std::make_pair(chan_name, Channel(chan_name)));
 
@@ -402,6 +409,8 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 
     // no existe nada
     client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));
+	std::cout << "Broadcast to FD: " << client.getFd() << std::endl;
+	std::cout << "execute PrivMsg" << std::endl;
 }
 
 
