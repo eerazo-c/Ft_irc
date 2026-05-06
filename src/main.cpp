@@ -90,6 +90,9 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error in accept" << std::endl;
                     break;
                 }
+
+				nclient->setFd(new_socket);  //FALTABA
+
                 if (irccserver.setNonBlocking_socket(new_socket) == -1)
                 {
                     std::cerr << "Error al fcntl 2" << std::endl;
@@ -137,9 +140,19 @@ int main(int ar, char const *argv[])
                         std::cerr << "Error in handshake" << std::endl;
                        continue;
                     }
-                    
-                    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
-					//irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
+					std::map<int, Client*>& clients = irccserver.getClients();
+					std::map<int, Client*>::iterator it = clients.find(client_fd);
+
+                    /*Client* cl = irccserver.getClients()[client_fd];
+
+					if (!cl)
+					{
+    				std::cout << "CLIENTE NULL 💀" << std::endl;
+    				continue;
+					}*/
+
+					irccserver.handleClientData(*(it->second), std::string(buffer), parser);
+                //    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        

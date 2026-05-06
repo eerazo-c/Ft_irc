@@ -62,15 +62,16 @@ Server::~Server()
 
 void Server::addClient(int fd, Client *client)
 {
-	//eli moficacion
-	/*if (fd != client->getFd())
+//	_clients[fd] = client;
+	if (fd != client->getFd())
 	{
 		std::cout << "ERROR: fd mismatch" << std::endl;
 		return;
 	}
-	_clients[fd] = client;*/
-    client->setFd(fd);
-    _clients.insert(std::pair<int, Client *>(fd, client));
+	_clients[fd] = client;
+/*    cliente->setFd(fd);
+    _clients.insert(std::pair<int, Client *>(fd, cliente));*/
+	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)

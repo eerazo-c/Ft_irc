@@ -39,12 +39,13 @@ bool Channel::isMember(Client &client)
 
 void Channel::addClient(Client &client)
 {
-	int fd = client.getFd();
+	_clients[client.getFd()] = &client;
+/*	int fd = client.getFd();
 
 	if (isMember(client))
 		return;
 
-    _clients.insert(std::make_pair(fd, &client));
+    _clients.insert(std::make_pair(fd, &client));*/
 }
 
 void Channel::removeClient(Client &client)
@@ -65,16 +66,28 @@ void Channel::broadcast(const std::string &msg){
 	}
 }
 
-void Channel::broadcastExcept(Client &sender, const std::string &msg){
+void Channel::broadcastExcept(Client &sender, const std::string &msg)
+{
+	std::cout << "BROADCAST START" << std::endl;
+	
 	for (std::map<int, Client*>::iterator it = _clients.begin();
 		 it != _clients.end(); ++it)
 	{
 		Client* client = it->second;
 
-		if (client != &sender)
-			send(client->getFd(), msg.c_str(), msg.size(), 0);
+		std::cout << "sending to: " << client->getNick()
+					<< " fd=" << client->getFd() << std::endl;
 
-		/*if (it->first != sender.getFd())
+		if (client->getFd() != sender.getFd())
+		{
+			std::cout << "SENT ✔" << std::endl;
+			send(client->getFd(), msg.c_str(), msg.size(), 0);
+		}
+
+/*		if (client != &sender)
+			send(client->getFd(), msg.c_str(), msg.size(), 0);*/
+
+/*		if (it->first != sender.getFd())
 			send(it->first, msg.c_str(), msg.size(), 0);*/
 	}
 }
@@ -91,3 +104,9 @@ std::string Channel::getUsersList() const{
 	}
 	return list;
 }
+/*
+void Channel::setClientChannel(Server &server)
+{
+	this->_clients = server->getClients();
+}
+*/

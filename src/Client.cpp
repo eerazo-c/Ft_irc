@@ -42,8 +42,6 @@ const Client::AuthState& Client::getState() const{return _state;}
 const struct sockaddr_in& Client::getClient_addres() const{ return this->_client_addr;}
 socklen_t& Client::getAddressLen()  {return this->_addrlen;}
 
-
-
 void Client::setFd(int fd){_fd = fd;}
 void Client::setNick(const std::string& nick){_nick = nick;}
 void Client::setUser(const std::string& user){_user = user;}

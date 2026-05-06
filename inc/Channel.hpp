@@ -16,6 +16,7 @@
 #include <map>
 
 class Client;
+class Server;
 
 class Channel {
 	private:
@@ -31,6 +32,8 @@ class Channel {
 
 	const std::string& getName() const;
 	
+
+	void setClientChannel(Server &server);
 	void broadcast(const std::string &msg);
 	void broadcastExcept(Client &sender, const std::string &msg);
 	std::string getUsersList() const;
