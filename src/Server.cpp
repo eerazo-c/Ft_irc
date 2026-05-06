@@ -42,11 +42,12 @@ Server::Server(int port, std::string &password,const char *serverN)
         std::cerr << e.what() << '\n';
     }    
     _commands["PASS"] = new Pass();
+	_commands["USER"] = new User();    
 	_commands["JOIN"] = new Join();
 	_commands["NICK"] = new Nick();
 	_commands["PART"] = new Part();
 	_commands["QUIT"] = new Quit();
-	_commands["USER"] = new User();    
+	_commands["PRIVMSG"] = new PrivMsg();
 }
 
 
