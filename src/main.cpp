@@ -135,13 +135,14 @@ int main(int ar, char const *argv[])
                 {
                     
                     std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
-                    if (irccserver.sendhandshake(client_fd) == -1)
+                    /*if (irccserver.sendhandshake(client_fd) == -1)
                     {
                         std::cerr << "Error in handshake" << std::endl;
                        continue;
                     }
-					std::map<int, Client*>& clients = irccserver.getClients();
-					std::map<int, Client*>::iterator it = clients.find(client_fd);
+					*/
+					//std::map<int, Client*>& clients = irccserver.getClients();
+					//std::map<int, Client*>::iterator it = clients.find(client_fd);
 
                     /*Client* cl = irccserver.getClients()[client_fd];
 
@@ -151,8 +152,8 @@ int main(int ar, char const *argv[])
     				continue;
 					}*/
 
-					irccserver.handleClientData(*(it->second), std::string(buffer), parser);
-                //    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
+				//	irccserver.handleClientData(*(it->second), std::string(buffer), parser);
+                    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
                 }
             }
        

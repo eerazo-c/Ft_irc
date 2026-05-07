@@ -63,6 +63,7 @@ Server::~Server()
 
 void Server::addClient(int fd, Client *client)
 {
+	//se modifico por que no conectaba los clientes.
 //	_clients[fd] = client;
 	if (fd != client->getFd())
 	{
@@ -119,9 +120,9 @@ int Server::listenServer()
 
 int Server::sendhandshake(int client_fd)
 {
-	(void)client_fd;
-	return (1);
-   // return (send(client_fd, " ",2 , 0));
+	//aqui modificamos la llamada desde el main esta comentada
+	//linea 138
+    return (send(client_fd, "\n",2 , 0));
 }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){

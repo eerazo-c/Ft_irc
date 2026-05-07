@@ -366,7 +366,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 	
 
     //buscar cliente por nick
-    //std::map<int, Client *>& clients = server.getClients();
+ //   std::map<int, Client *>& clients = server.getClients();
 
 	std::cout << "---- BROADCAST ----" << std::endl;
     for (std::map<int, Client *>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
