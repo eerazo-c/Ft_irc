@@ -11,9 +11,6 @@
 
 class Bot
 {
-
-
-
     private:
         enum AuthState{};
         int _fd;
@@ -36,7 +33,7 @@ class Bot
         };
 
         Bot();
-        Bot(std::string nick )
+        Bot(std::string nick);
 
         Bot(const Bot &to_copy);
         Bot &operator=(const Bot &original);
