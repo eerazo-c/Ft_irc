@@ -106,17 +106,50 @@ std::string Channel::getUsersList() const{
 	return list;
 }
 
-std::string Channel::partsend(Client& client, std::string message, std::string chan)
+/*std::string Channel::partsend(Client& client, std::string message, std::string chan)
 {
 	std::string partMsg = ":" + client.getNick() + "!" +
 		client.getUser() + "@localhost PART " + chan +
 		" :" + message + "\r\n";
 	return (partMsg);
+}*/
+
+std::string Channel::buildJoinMsg(Client &client, std::string chan)
+{
+        std::string joinMsg = ":" + client.getNick() + "!" +
+                client.getUser() + "@localhost JOIN " +
+                chan + "\r\n";
+
+        return (joinMsg);
 }
 
-/*
-void Channel::setClientChannel(Server &server)
+std::string Channel::buildPartMsg(Client &client,
+        std::string chan,
+        std::string message)
 {
-	this->_clients = server->getClients();
+        std::string partMsg = ":" + client.getNick() + "!" +
+                client.getUser() + "@localhost PART " +
+                chan + " :" + message + "\r\n";
+
+        return (partMsg);
 }
-*/
+
+std::string Channel::buildQuitMsg(Client &client,
+        std::string message)
+{
+        std::string quitMsg = ":" + client.getNick() +
+                " QUIT :" + message + "\r\n";
+
+        return (quitMsg);
+}
+
+std::string Channel::buildPrivMsg(Client &client,
+        std::string target,
+        std::string message)
+{
+        std::string fullMsg = ":" + client.getNick() + "!" +
+                client.getUser() + "@localhost PRIVMSG " +
+                target + " " + message + "\r\n";
+
+        return (fullMsg);
+}

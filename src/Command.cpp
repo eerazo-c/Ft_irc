@@ -223,8 +223,9 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 		chan.addClient(client);
 
 		// JOIN msg
-		std::string joinMsg = ":" + client.getNick() + "!" +
-			client.getUser() + "@localhost JOIN " + chan_name + "\r\n";
+		std::string joinMsg = chan.buildJoinMsg(client, chan_name);
+		/*std::string joinMsg = ":" + client.getNick() + "!" +
+			client.getUser() + "@localhost JOIN " + chan_name + "\r\n";*/
 
 		chan.broadcast(joinMsg);
 
@@ -276,9 +277,10 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 
 		if (!channel.isMember(client))
 			continue;
+		std::string partMsg = channel.buildPartMsg(client, chan, message);
 		
-		std::string partMsg = server.getChannels().partsend(client, message, chan);
-	/*	std::string partMsg = ":" + client.getNick() + "!" +
+/*	std::string partMsg = server.getChannels().partsend(client, message, chan);
+		std::string partMsg = ":" + client.getNick() + "!" +
 			client.getUser() + "@localhost PART " + chan +
 			" :" + message + "\r\n";*/
 
@@ -301,11 +303,13 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 	else 
 		message = "";
 
-	std::string quitMsg = ":" + client.getNick() +
-		" QUIT :" + message + "\r\n";
+/*	std::string quitMsg = ":" + client.getNick() +
+		" QUIT :" + message + "\r\n";*/
 
 	std::map<std::string, Channel> &channels = server.getChannels();
-
+	Channel tmp;
+	std::string quitMsg = tmp.buildQuitMsg(client, message);
+	//std::string quitMsg = chan.buildQuitMsg(client, message);
 	for (std::map<std::string, Channel>::iterator it = channels.begin();
 		 it != channels.end(); ++it)
 	{
@@ -361,9 +365,14 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
             message += " ";
         message += args[i];
     }
+	
+	Channel tmp;
 
-	std::string fullMsg = ":" + client.getNick() + "!" + 
-		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
+	std::string fullMsg = tmp.buildPrivMsg(client,
+        target,
+        message);
+	/*std::string fullMsg = ":" + client.getNick() + "!" + 
+		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";*/
 
 	for (std::map<int, Client *>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
     {
