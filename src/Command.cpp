@@ -360,11 +360,16 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
             message += " ";
         message += args[i];
     }
-   
-	std::string fullMsg = ":" + client.getNick() + "!" + 
-		client.getUser() + "@localhost PRIVMSG " + target + " :" + message + "\r\n";
-	
+   	
+		std::cout << "target:" << target << std::endl;
+		std::cout << "message:" << message << std::endl;
 
+		std::string fullMsg = ":" + client.getNick() + "!" + 
+		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
+
+//	std::string fullMsg = ":" + client.getNick() + "!" + 
+//		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
+	std::cout << "fullMsg: " << fullMsg << std::endl;
     //buscar cliente por nick
  //   std::map<int, Client *>& clients = server.getClients();
 
@@ -377,7 +382,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 			send(it->second->getFd(), fullMsg.c_str(), fullMsg.size(), 0);
 
             // opcional pero correcto en IRC: eco al emisor
-            send(client.getFd(), fullMsg.c_str(), fullMsg.size(), 0);
+    //        send(client.getFd(), fullMsg.c_str(), fullMsg.size(), 0);
 			return;
             //dest = it->second;
             //break;

@@ -10,7 +10,7 @@ class ChannelManager {
 
 	public:
 	ChannelManager();
-	~Channel();
+	~ChannelManager();
 	
 //	Channel *Search(const std::string &name);
 	bool AddChannel(Channel &channel);
