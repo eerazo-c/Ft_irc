@@ -12,18 +12,19 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <vector>
 #include <map>
+//#include "Command.hpp"
 
 class Client;
 class Server;
+class Command;
 
 class Channel {
 	private:
 	std::string _name;
 	std::map<int, Client *> _clients;
-//	std::map<int, Client *> _invites;
-//	std::map<int, Client *> _operators;
 
 	public:
 	Channel();
@@ -42,4 +43,6 @@ class Channel {
 	void addClient(Client &client);
 	void removeClient(Client &client);
 	void partAll(Client &client);
+
+	std::string partsend(Client& client, std::string message, std::string chan);
 };

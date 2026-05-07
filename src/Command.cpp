@@ -276,10 +276,11 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 
 		if (!channel.isMember(client))
 			continue;
-
-		std::string partMsg = ":" + client.getNick() + "!" +
+		
+		std::string partMsg = server.getChannels().partsend(client, message, chan);
+	/*	std::string partMsg = ":" + client.getNick() + "!" +
 			client.getUser() + "@localhost PART " + chan +
-			" :" + message + "\r\n";
+			" :" + message + "\r\n";*/
 
 		channel.broadcast(partMsg);
 		channel.removeClient(client);
@@ -360,51 +361,20 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
             message += " ";
         message += args[i];
     }
-   	
-		std::cout << "target:" << target << std::endl;
-		std::cout << "message:" << message << std::endl;
 
-		std::string fullMsg = ":" + client.getNick() + "!" + 
+	std::string fullMsg = ":" + client.getNick() + "!" + 
 		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
 
-//	std::string fullMsg = ":" + client.getNick() + "!" + 
-//		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
-	std::cout << "fullMsg: " << fullMsg << std::endl;
-    //buscar cliente por nick
- //   std::map<int, Client *>& clients = server.getClients();
-
-	std::cout << "---- BROADCAST ----" << std::endl;
-    for (std::map<int, Client *>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
+	for (std::map<int, Client *>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
     {
-		std::cout << "FD en canal: " << it->first << std::endl;
         if (it->second->getNick() == target)
         {
 			send(it->second->getFd(), fullMsg.c_str(), fullMsg.size(), 0);
-
-            // opcional pero correcto en IRC: eco al emisor
-    //        send(client.getFd(), fullMsg.c_str(), fullMsg.size(), 0);
 			return;
-            //dest = it->second;
-            //break;
         }
     }
-
-   /* if (dest)
-    {
-		std::string msg = ":" + client.getNick() + "!" +
-			client.getUser() + "@localhost PRIVMSG " +
-			dest->getNick() + " :" + message + "\r\n";
-
-		send(dest->getFd(), msg.c_str(), msg.size(), 0);
-		return;
-		
-        std::cout << client.getNick() << " -> " << dest->getNick()
-                  << " : " << message << std::endl;
-        return;
-    }
-*/
-    // buscar canal
-    std::map<std::string, Channel>& channels = server.getChannels();
+ 
+	std::map<std::string, Channel>& channels = server.getChannels();
     std::map<std::string, Channel>::iterator it = channels.find(target);
 
     if (it != channels.end())
@@ -421,8 +391,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
         return;
 	}
 
-    // no existe nada
-    client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));
+	client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));
 	std::cout << "Broadcast to FD: " << client.getFd() << std::endl;
 	std::cout << "execute PrivMsg" << std::endl;
 }

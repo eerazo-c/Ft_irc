@@ -10,16 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 #pragma once
+#include "Channel.hpp"
 #include "header.hpp"
 #include <sstream>
 #include <cmath>
+#include "Channel.hpp"
 
+class Channel;
 class Command 
 {
 	public:
 		virtual ~Command(){}
 		virtual void execute(Client& client, std::vector<std::string> args, Server &server) const = 0;
-
 };
 
 class Pass : public Command

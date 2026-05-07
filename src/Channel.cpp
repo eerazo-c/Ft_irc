@@ -12,6 +12,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Command.hpp"
+#include <string>
 
 Channel::Channel()
 {
@@ -104,6 +105,15 @@ std::string Channel::getUsersList() const{
 	}
 	return list;
 }
+
+std::string Channel::partsend(Client& client, std::string message, std::string chan)
+{
+	std::string partMsg = ":" + client.getNick() + "!" +
+		client.getUser() + "@localhost PART " + chan +
+		" :" + message + "\r\n";
+	return (partMsg);
+}
+
 /*
 void Channel::setClientChannel(Server &server)
 {
