@@ -1,4 +1,10 @@
-#include "header_client.hpp"
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 
 void send_irc_cmd(int sock, const std::string &cmd)
@@ -64,8 +70,8 @@ int main(int ac, char **av)
 
     // Registro IRC correcto
     send_irc_cmd(sock, "PASS " + password);
-    send_irc_cmd(sock, "NICK mi_bot");
-    send_irc_cmd(sock, "USER guest 0 * :Soy un cliente");
+    send_irc_cmd(sock, "NICK Hal_pocho");
+    send_irc_cmd(sock, "USER JAL 0 * :Soy un bot");
 
     sleep(1);
 
