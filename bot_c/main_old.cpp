@@ -1,4 +1,10 @@
-#include "header.h"
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 void send_irc_cmd(int sock, std::string cmd);
 
@@ -7,7 +13,7 @@ int main(int ar , char**argv)
 	if (ar !=3)
     {
         std::cout << "ERROR: Invalid Arguments" <<
-        std::endl << "usage: /ircserv <port> <password>" << std::endl;
+        std::endl << "usage: /bot_ <port> <password>" << std::endl;
         return 0;
     }
     std::cout << "Todo bien jeje" << std::endl;
@@ -44,6 +50,7 @@ int main(int ar , char**argv)
         return 1;
     }
     std::cout << "¡Conectado exitosamente!" << std::endl;
+    
 
 		// 1. Definir los comandos (IRC requiere que terminen en \r\n)
 		std::string pass_cmd = "PASS " + in_password + "\r\n";
@@ -55,21 +62,27 @@ int main(int ar , char**argv)
 		// 2. Enviar los datos con send()
 		// ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 
-        send_irc_cmd(socket_t, msg_cmd3);
-		//send_irc_cmd(socket_t, pass_cmd);
-		//send_irc_cmd(socket_t, nick_cmd);
-		//send_irc_cmd(socket_t, user_cmd);
+        //send_irc_cmd(socket_t, msg_cmd3);
+		send_irc_cmd(socket_t, pass_cmd);
+		send_irc_cmd(socket_t, nick_cmd);
+		send_irc_cmd(socket_t, user_cmd);
 	
 		// Esperar un poco o entrar en un bucle de lectura antes de enviar el mensaje
 		// para asegurar que el servidor nos ha aceptado.
 		sleep(1); 
-
-		//send(socket_t, msg_cmd.c_str(), msg_cmd.length(), 0);
+        send_irc_cmd(socket_t, "hola soy un botttt");
+		//send(socket_t, msg_cmd.c_str(),   msg_cmd.length(), 0);
 
 		std::cout << "Mensajes enviados." << std::endl;
 
+    // enviar repetidamente  randMsg
+    
+    std::string randMsgm[] = {"hola soy un bot" , "Huevon " , "No soy homo :D"};
 
-    close(socket_t);
+
+
+
+    //close(socket_t);
 	
 	return 0;
 } 
@@ -78,6 +91,6 @@ void send_irc_cmd(int sock, std::string cmd)
 {
     cmd += "\r\n";
     if (send(sock, cmd.c_str(), cmd.length(), 0) < 0) {
-        std::cerr << "Error al enviar comando" << std::endl;
+        std::cerr << "Error el SEND" << std::endl;
     }
 }  
