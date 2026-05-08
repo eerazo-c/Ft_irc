@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 17:31:15 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/04/21 17:34:56 by elerazo-         ###   ########.fr       */
+/*   Updated: 2026/05/08 14:48:18 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #pragma once
 
 //networkname = servidor en 001
@@ -21,8 +22,9 @@
 #define RPL_UMODEIS(nick, modes) "221 " +  (nick) + (modes)
 #define RPL_CHANNELMODEIS(client, channel, modes) "324 " +  (client) + (channel) + (modes)
 #define RPL_NOTOPIC(nick, channel) "331 " + (nick) + (channel) + ":No topic is set"
-#define RPL_TOPIC(nick, channel) "332 " + (nick) + (channel) + ":<topic>"
-#define RPL_INVITING(nick, channel) "341 " +  (nick) + (channel)
+#define RPL_TOPIC(nick, channel, topic) "332 " + (nick) + " " + (channel) + " :" + (topic)
+#define RPL_INVITING(nick, channel, target) "341 " + (nick) + " " + (channel) + " " + (target)
+
 
 #define RPL_NAMREPLY() "353 " + (client) + (symbol) + (channel) + ": [prefix]" + (nick) +  [prefix] + (nick)
 #define RPL_ENDOFNAMES() "366 " + (client) + (channel) + ":End of /NAMES list"
@@ -39,11 +41,13 @@
 #define ERR_ERRONEUSNICKNAMETOOLONG(nick) "432 " + (nick) + ":Erroneus nickname too long"
 #define ERR_ERRORNICKNAMETOOLONG(nick) "432 " + (nick) + ":Nickname too long"
 #define ERR_ERRONEUSNICKNAMEINUSE(nick) "432 " + (nick) + ":Nickname in use"
-#define ERR_USERNOTINCHANNEL(nick, channel) "441 " + (nick) + (channel) + ":They aren't on that channel"
+#define ERR_USERNOTINCHANNEL(nick, target, channel) "441 " + (nick) + " " + (target) + " " + (channel) + " :They aren't on that channel"
 #define ERR_NOTONCHANNEL(nick, channel) "442 " + (nick) + (channel) + ":You're not on that channel"
+#define ERR_USERONCHANNEL(nick, target, channel) "443 " + (nick) + " " + (target) + " " + (channel) + " :is already on channel"
 #define ERR_NOTREGISTERED(nick) "451 " +  (nick) + ":You have not registered"
 #define ERR_NEEDMOREPARAMS(nick, command) "461 " + (nick) + (command) + ":Not enough parameters"
 #define ERR_ALREADYREGISTERED(nick) "462 " + (nick) + ":You may not reregister"
+#define ERR_KEYSET(nick, channel) "467 " + (nick) + " " + (channel) + " :Channel key already set"
 #define ERR_CHANNELISFULL(nick, channel) "471 " + (nick) + (channel) + ":Cannot join channel (+l)" 
 #define ERR_UNKNOWNMODE(nick, modechar) "472 " + (nick) + (modechar) + ":is unknown mode char to me"
 #define ERR_INVITEONLYCHAN(nick, channel) "473 " + (nick) + (channel) + ":Cannot join channel (+i)"

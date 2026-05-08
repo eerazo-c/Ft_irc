@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/04/22 17:48:58 by elerazo-         ###   ########.fr       */
+/*   Updated: 2026/05/08 14:49:36 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Command.hpp"
+
 #include "Channel.hpp"
+#include "Command.hpp"
 #include "Message.hpp"
 #include <iterator>
 #include <locale>
@@ -449,3 +450,227 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 	}
 }
 */
+
+namespace
+{
+    Client* findClientByNick(Server &server, const std::string &nick)
+    {
+        std::map<int, Client *> &clients = server.getClients();
+        std::map<int, Client *>::iterator it;
+
+        for (it = clients.begin(); it != clients.end(); ++it)
+        {
+            if (it->second != NULL && it->second->getNick() == nick)
+                return (it->second);
+        }
+        return (NULL);
+    }
+
+    std::string buildKickReason(Client &client, const std::vector<std::string> &args)
+    {
+        std::string reason;
+
+        if (args.size() < 3)
+            return (client.getNick());
+        reason = args[2];
+        for (std::size_t i = 3; i < args.size(); ++i)
+            reason += " " + args[i];
+        return (reason);
+    }
+}
+
+Kick::~Kick()
+{
+}
+
+void Kick::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
+    std::string channelName;
+    std::string targetNick;
+    std::string reason;
+    std::map<std::string, Channel> &channels = server.getChannels();
+    std::map<std::string, Channel>::iterator channelIt;
+    Client *target;
+
+	if (args.size() < 2)
+	{
+		client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "KICK"));
+		return;
+	}
+
+	channelName = args[0];
+	targetNick = args[1];
+	reason = buildKickReason(client, args);
+    channelIt = channels.find(channelName);
+    if (channelIt == channels.end())
+    {
+		client.WritePrefix(ERR_NOSUCHCHANNEL(client.getNick(), channelName));
+		return;
+	}
+
+	Channel &channel = channelIt->second;
+
+	if (!channel.isMember(client))
+	{
+		client.WritePrefix(ERR_NOTONCHANNEL(client.getNick(), channelName));
+		return;
+	}
+
+	if (!channel.isOperator(client))
+	{
+		client.WritePrefix(ERR_CHANOPRIVSNEEDED(client.getNick(), channelName));
+		return;
+	}
+
+	target = findClientByNick(server, targetNick);
+
+	if (target == NULL)
+	{
+		client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), targetNick));
+		return;
+	}
+
+	if (!channel.isMember(*target))
+	{
+		client.WritePrefix(ERR_USERNOTINCHANNEL(client.getNick(), targetNick, channelName));
+        return;
+    }
+
+	std::string kickMsg = ":" + client.getNick() + "!" + client.getUser()
+		+ "@localhost KICK " + channelName + " " + targetNick + " :" + reason + "\r\n";
+
+	channel.broadcast(kickMsg);
+	channel.removeClient(*target);
+}
+
+Invite::~Invite()
+{
+}
+
+void Invite::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
+    std::string targetNick;
+    std::string channelName;
+    std::map<std::string, Channel> &channels = server.getChannels();
+    std::map<std::string, Channel>::iterator channelIt;
+    Client *target;
+
+    if (args.size() < 2)
+    {
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "INVITE"));
+        return;
+    }
+
+	targetNick = args[0];
+	channelName = args[1];
+
+	target = findClientByNick(server, targetNick);
+	if (target == NULL)
+	{
+        client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), targetNick));
+        return;
+    }
+
+    channelIt = channels.find(channelName);
+    if (channelIt == channels.end())
+    {
+		client.WritePrefix(ERR_NOSUCHCHANNEL(client.getNick(), channelName));
+		return;
+	}
+
+	Channel &channel = channelIt->second;
+
+    if (!channel.isMember(client))
+    {
+        client.WritePrefix(ERR_NOTONCHANNEL(client.getNick(), channelName));
+        return;
+    }
+
+    if (channel.getMode('i') && !channel.isOperator(client))
+    {
+        client.WritePrefix(ERR_CHANOPRIVSNEEDED(client.getNick(), channelName));
+        return;
+    }
+
+    if (channel.isMember(*target))
+    {
+        client.WritePrefix(ERR_USERONCHANNEL(client.getNick(), targetNick, channelName));
+        return;
+    }
+
+    channel.addInvited(*target);
+
+	client.WritePrefix(RPL_INVITING(client.getNick(), channelName, targetNick));
+	target->WritePrefix(":" + client.getNick() + "!" + client.getUser()
+		+ "@localhost INVITE " + targetNick + " :" + channelName);
+}
+
+Topic::~Topic()
+{
+}
+
+void Topic::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
+    std::string channelName;
+	std::string topic;
+	std::map<std::string, Channel> &channels = server.getChannels();
+	std::map<std::string, Channel>::iterator channelIt;
+
+	if (args.empty())
+	{
+		client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "TOPIC"));
+        return;
+    }
+    channelName = args[0];
+
+    channelIt = channels.find(channelName);
+    if (channelIt == channels.end())
+    {
+        client.WritePrefix(ERR_NOSUCHCHANNEL(client.getNick(), channelName));
+        return;
+	}
+
+	Channel &channel = channelIt->second;
+
+	if (!channel.isMember(client))
+	{
+		client.WritePrefix(ERR_NOTONCHANNEL(client.getNick(), channelName));
+        return;
+    }
+
+    if (args.size() == 1)
+    {
+        if(channel.getTopic().empty())
+            client.WritePrefix(RPL_NOTOPIC(client.getNick(), channelName));
+        else
+            client.WritePrefix(RPL_TOPIC(client.getNick(), channelName, channel.getTopic()));
+        return;
+    }
+
+    topic = args[1];
+    for (std::size_t i = 2; i < args.size(); ++i)
+	{
+		topic += " " + args[i];
+	}
+
+	if (channel.getMode('t') && !channel.isOperator(client))
+	{
+		client.WritePrefix(ERR_CHANOPRIVSNEEDED(client.getNick(), channelName));
+		return;
+	}
+
+	channel.setTopic(topic);
+	channel.broadcast(":" + client.getNick() + "!" + client.getUser()
+		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n");
+}
+
+Mode::~Mode()
+{
+}
+
+void Mode::execute(Client& client, std::vector<std::string> args, Server &server) const
+{
+	(void)client;
+	(void)args;
+	(void)server;
+}

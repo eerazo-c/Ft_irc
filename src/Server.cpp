@@ -46,7 +46,11 @@ Server::Server(int port, std::string &password,const char *serverN)
 	_commands["NICK"] = new Nick();
 	_commands["PART"] = new Part();
 	_commands["QUIT"] = new Quit();
-	_commands["USER"] = new User();    
+	_commands["USER"] = new User();
+    _commands["KICK"] = new Kick();
+    _commands["INVITE"] = new Invite();
+    _commands["TOPIC"] = new Topic();
+    _commands["MODE"] = new Mode();
 }
 
 
