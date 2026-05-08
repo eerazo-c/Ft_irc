@@ -2,23 +2,29 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-void send_irc_cmd(int sock, std::string cmd);
-
+void send_irc_cmd(int sock, std::string cmd) 
+{
+    cmd += "\r\n";
+    if (send(sock, cmd.c_str(), cmd.length(), 0) < 0) {
+        std::cerr << "Error el SEND" << std::endl;
+    }
+}  
 int main(int ar , char**argv)
 {
 	if (ar !=3)
     {
         std::cout << "ERROR: Invalid Arguments" <<
         std::endl << "usage: /bot_ <port> <password>" << std::endl;
-        return 0;
+        return 1;
     }
-    std::cout << "Todo bien jeje" << std::endl;
     std::string in_port (argv[1]);
     std::string in_password (argv[2]);
+    srand(time(NULL));
 	//aqui empieza el cliente
 	
  //AF_INET = IPv4  , AF_INET6 = IPv6
@@ -45,52 +51,49 @@ int main(int ar , char**argv)
     //  hacemos cast de sockaddr_in a sockaddr porque lo pide la funcion connect()
     if (connect(socket_t, (struct sockaddr *)&server_data, sizeof(server_data)) < 0)
      {
-        std::cerr << "Conexión fallida" << std::endl;
+        std::cerr << "Error: connect" << std::endl;
         close(socket_t);
         return 1;
     }
-    std::cout << "¡Conectado exitosamente!" << std::endl;
+    std::cout << "Conectado :D" << std::endl;
+
+	std::string pass_cmd = "PASS " + in_password;
+	std::string nick_cmd = "NICK HALLL";
+	std::string user_cmd = "USER guest 0 * :Robot";
+	std::string msg_cmd  = "PRIVMSG #general :Hola desde mi cliente C++";
     
+	// 2. Enviar los datos con send()
+	// ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+    //send_irc_cmd(socket_t, msg_cmd3);
+	send_irc_cmd(socket_t, pass_cmd);
+	send_irc_cmd(socket_t, nick_cmd);
+	send_irc_cmd(socket_t, user_cmd);
+    send_irc_cmd(socket_t, "JOIN #general");
 
-		// 1. Definir los comandos (IRC requiere que terminen en \r\n)
-		std::string pass_cmd = "PASS " + in_password + "\r\n";
-		std::string nick_cmd = "NICK mi_bot\r\n";
-		std::string user_cmd = "USER guest 0 * :Soy un cliente\r\n";
-		std::string msg_cmd  = "PRIVMSG #canal_test :Hola desde mi cliente C++\r\n";
-
-        std::string msg_cmd3 (in_password);
-		// 2. Enviar los datos con send()
-		// ssize_t send(int sockfd, const void *buf, size_t len, int flags);
-
-        //send_irc_cmd(socket_t, msg_cmd3);
-		send_irc_cmd(socket_t, pass_cmd);
-		send_irc_cmd(socket_t, nick_cmd);
-		send_irc_cmd(socket_t, user_cmd);
-	
-		// Esperar un poco o entrar en un bucle de lectura antes de enviar el mensaje
-		// para asegurar que el servidor nos ha aceptado.
-		sleep(1); 
-        send_irc_cmd(socket_t, "hola soy un botttt");
-		//send(socket_t, msg_cmd.c_str(),   msg_cmd.length(), 0);
-
-		std::cout << "Mensajes enviados." << std::endl;
+	sleep(1); 
+	//send(socket_t, msg_cmd.c_str(),   msg_cmd.length(), 0);
+	std::cout << "Mensajes enviados." << std::endl;
 
     // enviar repetidamente  randMsg
     
-    std::string randMsgm[] = {"hola soy un bot" , "Huevon " , "No soy homo :D"};
+    std::string randMsgm[] = {"hola soy un bot" , "Huevon " , "hola humano:D"};
 
+    char buffer[1024];
+    time_t lastMsg = time(NULL);
 
+    while (true)
+    {
+       if (time(NULL) - lastMsg >= 10)
+        {
+            int r = rand() % randMsgm->size();
+            send_irc_cmd(socket_t,"PRIVMSG #canal_test :" + randMsgm[r]);
+            lastMsg = time(NULL);
+        }
+    }
+    
 
-
-    //close(socket_t);
+    close(socket_t);
 	
 	return 0;
 } 
 
-void send_irc_cmd(int sock, std::string cmd) 
-{
-    cmd += "\r\n";
-    if (send(sock, cmd.c_str(), cmd.length(), 0) < 0) {
-        std::cerr << "Error el SEND" << std::endl;
-    }
-}  
