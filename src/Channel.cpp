@@ -6,13 +6,14 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/30 19:36:25 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/08 15:36:55 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/08 18:02:12 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Command.hpp"
+#include <string>
 
 
 Channel::Channel()
@@ -43,16 +44,18 @@ bool Channel::isMember(Client &client) const
 
 void Channel::addClient(Client &client)
 {
+
 	int fd = client.getFd();
 	bool firstClient = _clients.empty();
 
 	if (isMember(client))
 		return;
-
+	//	_clients[client.getFd()] = &client;  merge eli
 	_clients.insert(std::make_pair(fd, &client));
 	if (firstClient)
 		setOperator(client, true);
 	removeInvited(client);
+
 }
 
 
@@ -79,17 +82,17 @@ void Channel::broadcast(const std::string &msg){
 	}
 }
 
-void Channel::broadcastExcept(Client &sender, const std::string &msg){
+void Channel::broadcastExcept(Client &sender, const std::string &msg)
+{	
 	for (std::map<int, Client*>::iterator it = _clients.begin();
 		 it != _clients.end(); ++it)
 	{
 		Client* client = it->second;
 
-		if (client != &sender)
+		if (client->getFd() != sender.getFd())
+		{
 			send(client->getFd(), msg.c_str(), msg.size(), 0);
-
-		/*if (it->first != sender.getFd())
-			send(it->first, msg.c_str(), msg.size(), 0);*/
+		}
 	}
 }
 
@@ -210,4 +213,47 @@ void Channel::setLimit(int limit)
 		_limit = 0;
 	else
 		_limit = limit;
+}
+
+std::string Channel::buildJoinMsg(Client &client, std::string chan)
+{
+	std::string joinMsg = ":" + client.getNick() + "!" + 
+		client.getUser() + "@localhost JOIN " + chan + "\r\n";
+	return (joinMsg);
+}
+
+std::string Channel::buildPartMsg(Client &client, std::string chan, std::string message)
+{
+	std::string partMsg = ":" + client.getNick() + "!" +
+		client.getUser() + "@localhost PART " + chan + " :" + message + "\r\n";
+	return (partMsg);
+}
+
+std::string Channel::buildQuitMsg(Client &client, std::string message)
+{
+	std::string quitMsg = ":" + client.getNick() + " QUIT :" + message + "\r\n";
+	return (quitMsg);
+}
+
+std::string Channel::buildPrivMsg(Client &client, std::string target, std::string message)
+{
+	std::string fullMsg = ":" + client.getNick() + "!" +
+		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";
+	return (fullMsg);
+}
+
+std::string Channel::buildNamesMsg(Client &client, std::string chan)
+{
+	std::string users = getUsersList();
+	std::string namesMsg = ":localhost 353 " + client.getNick() + " = " + 
+		chan + " :" + users + "\r\n";
+	return (namesMsg);
+}
+
+std::string Channel::buildEndNamesMsg(Client &client, std::string chan)
+{
+	std::string endMsg = ":localhost 366 " + client.getNick() + " " +
+		chan + " :End of /NAMES list\r\n";
+	return (endMsg);
+
 }

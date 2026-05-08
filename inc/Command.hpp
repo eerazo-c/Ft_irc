@@ -6,23 +6,25 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 14:00:40 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/07 18:06:59 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/08 17:53:43 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COMMAND_HPP
-#define COMMAND_HPP
 
+#pragma once
+
+#include "Channel.hpp"
 #include "header.hpp"
 #include <sstream>
 #include <cmath>
+#include "Channel.hpp"
 
+class Channel;
 class Command 
 {
 	public:
 		virtual ~Command(){}
 		virtual void execute(Client& client, std::vector<std::string> args, Server &server) const = 0;
-
 };
 
 class Pass : public Command
@@ -101,5 +103,3 @@ class Mode : public Command
 		~Mode();
 		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };
-
-#endif

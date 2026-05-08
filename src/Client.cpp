@@ -42,8 +42,6 @@ const Client::AuthState& Client::getState() const{return _state;}
 const struct sockaddr_in& Client::getClient_addres() const{ return this->_client_addr;}
 socklen_t& Client::getAddressLen()  {return this->_addrlen;}
 
-
-
 void Client::setFd(int fd){_fd = fd;}
 void Client::setNick(const std::string& nick){_nick = nick;}
 void Client::setUser(const std::string& user){_user = user;}
@@ -59,7 +57,7 @@ void Client::setClient_addres()
 
 //eli funtion
 void Client::WritePrefix(std::string const &_message)
-{{
+{
 	std::string msg = _message + "\r\n";
 
 	// (debug)
@@ -67,8 +65,6 @@ void Client::WritePrefix(std::string const &_message)
 
 	//  cliente (HexChat)
 	send(this->getFd(), msg.c_str(), msg.size(), 0);
-}
-	//std::cout << _message << std::endl;
 }
 
 //eli funtion

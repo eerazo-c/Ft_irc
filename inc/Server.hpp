@@ -15,11 +15,9 @@
 #include "header.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
-
-class Channel;
-
 #include "Parser.hpp"
 
+class Channel;
 class Command;
 class Parser;
 struct IrcMessage;

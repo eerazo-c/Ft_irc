@@ -42,15 +42,19 @@ Server::Server(int port, std::string &password,const char *serverN)
         std::cerr << e.what() << '\n';
     }    
     _commands["PASS"] = new Pass();
+	_commands["USER"] = new User();    
 	_commands["JOIN"] = new Join();
 	_commands["NICK"] = new Nick();
 	_commands["PART"] = new Part();
 	_commands["QUIT"] = new Quit();
+    _commands["PRIVMSG"] = new PrivMsg();
 	_commands["USER"] = new User();
     _commands["KICK"] = new Kick();
     _commands["INVITE"] = new Invite();
     _commands["TOPIC"] = new Topic();
     _commands["MODE"] = new Mode();
+
+
 }
 
 
@@ -66,15 +70,17 @@ Server::~Server()
 
 void Server::addClient(int fd, Client *client)
 {
-	//eli moficacion
-	/*if (fd != client->getFd())
+	//se modifico por que no conectaba los clientes.
+//	_clients[fd] = client;
+	if (fd != client->getFd())
 	{
 		std::cout << "ERROR: fd mismatch" << std::endl;
 		return;
 	}
-	_clients[fd] = client;*/
-    client->setFd(fd);
-    _clients.insert(std::pair<int, Client *>(fd, client));
+	_clients[fd] = client;
+/*    cliente->setFd(fd);
+    _clients.insert(std::pair<int, Client *>(fd, cliente));*/
+	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -121,9 +127,9 @@ int Server::listenServer()
 
 int Server::sendhandshake(int client_fd)
 {
-	(void)client_fd;
-	return (1);
-   // return (send(client_fd, " ",2 , 0));
+	//aqui modificamos la llamada desde el main esta comentada
+	//linea 138
+    return (send(client_fd, "\n",2 , 0));
 }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){

@@ -6,7 +6,7 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/01 17:05:05 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/07 14:14:10 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/08 17:57:16 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,15 @@
 #include <string>
 #include <vector>
 #include <map>
+//#include "Command.hpp"
 
 class Client;
+class Server;
+class Command;
 
 class Channel {
 	private:
+
 		std::string _name;
 		std::map<int, Client *> _clients;
 		std::map<int, Client *> _operators;
@@ -33,6 +37,7 @@ class Channel {
 		int _limit;
 
 
+
 	public:
 		Channel();
 		Channel(std::string &name);
@@ -40,6 +45,8 @@ class Channel {
 
 	const std::string& getName() const;
 	
+
+	void setClientChannel(Server &server);
 	void broadcast(const std::string &msg);
 	void broadcastExcept(Client &sender, const std::string &msg);
 	std::string getUsersList() const;
@@ -69,6 +76,15 @@ class Channel {
 
 	int getLimit() const;
 	void setLimit(int limit);
+
+
+	std::string buildJoinMsg(Client &client, std::string chan);
+	std::string buildPartMsg(Client &client, std::string chan, std::string message);
+	std::string buildQuitMsg(Client &client, std::string message);
+	std::string buildPrivMsg(Client &client, std::string target, std::string message);
+
+	std::string buildNamesMsg(Client &client, std::string chan);
+	std::string buildEndNamesMsg(Client &client, std::string chan);
 
 };
 
