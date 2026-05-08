@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _port_s(0),_password(""),_server_socket(-1)
+Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
 {
     std::memset(&this->_server_address, 0, sizeof(this->_server_address));
     std::cout << "no deberias estar haciendo esto;" << std::endl;
@@ -16,9 +16,15 @@ Server::Server(const Server &to_copy)
     *this = to_copy;
 }
 
-Server::Server(int port, std::string &password)
+void Server::setServerName(const char *sname)
 {
-    
+    this->_serverName = sname;
+}
+
+Server::Server(int port, std::string &password,const char *serverN)
+{
+    setServerName(serverN);
+
     try
     {
         setPort(port);
@@ -35,14 +41,20 @@ Server::Server(int port, std::string &password)
     {
         std::cerr << e.what() << '\n';
     }    
-
     _commands["PASS"] = new Pass();
+	_commands["USER"] = new User();    
 	_commands["JOIN"] = new Join();
 	_commands["NICK"] = new Nick();
 	_commands["PART"] = new Part();
 	_commands["QUIT"] = new Quit();
+    _commands["PRIVMSG"] = new PrivMsg();
 	_commands["USER"] = new User();
-    
+    _commands["KICK"] = new Kick();
+    _commands["INVITE"] = new Invite();
+    _commands["TOPIC"] = new Topic();
+    _commands["MODE"] = new Mode();
+
+
 }
 
 
@@ -56,11 +68,19 @@ Server::~Server()
     close (_server_socket);
 }
 
-
-void Server::addClient(int fd, Client cliente)
+void Server::addClient(int fd, Client *client)
 {
-    cliente.setFd(fd);
-    _clients.insert(std::pair<int, Client>(fd, cliente));
+	//se modifico por que no conectaba los clientes.
+//	_clients[fd] = client;
+	if (fd != client->getFd())
+	{
+		std::cout << "ERROR: fd mismatch" << std::endl;
+		return;
+	}
+	_clients[fd] = client;
+/*    cliente->setFd(fd);
+    _clients.insert(std::pair<int, Client *>(fd, cliente));*/
+	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -107,7 +127,9 @@ int Server::listenServer()
 
 int Server::sendhandshake(int client_fd)
 {
-    return (send(client_fd, "OK",2 , 0));
+	//aqui modificamos la llamada desde el main esta comentada
+	//linea 138
+    return (send(client_fd, "\n",2 , 0));
 }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
@@ -131,8 +153,6 @@ void Server::executeCommand(Client& client, IrcMessage& message){
         it->second->execute(client, message.params, *this);
     }
 }
-
-
 
 //  void Server::setEpoll()
 //  {
@@ -173,10 +193,16 @@ std::string Server::getPass()const { return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
 struct sockaddr_in& Server::getServer_address(){ return _server_address;}
-
-std::map<int, Client>& Server::getClients(){ return _clients;}
+std::string Server::getServerName(){ return _serverName;}
+std::map<int, Client *>& Server::getClients(){ return _clients;}
 const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
 // int Server::getEpoll_fd() const{ return epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
 // struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}
+
+//eli function
+std::string Server::servername(void) const 
+{
+	return ("MyircServer");
+}

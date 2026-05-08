@@ -1,6 +1,8 @@
 #pragma once
 
 #include "header.hpp"
+#include "Server.hpp"
+class Server;
 
 class Client{
     public:
@@ -17,9 +19,9 @@ class Client{
         std::string _realName;
         std::string _message;
         AuthState _state;
-
         struct sockaddr_in _client_addr;
         socklen_t _addrlen;
+	//	bool _closing;
 
     public:
         Client();
@@ -37,7 +39,6 @@ class Client{
         const struct sockaddr_in& getClient_addres() const;
         socklen_t& getAddressLen();
 
-
         void setFd(int fd);
         void setNick(const std::string& nick);
         void setUser(const std::string& user);
@@ -45,4 +46,8 @@ class Client{
         void setMesagge(const std::string& message);
         void setState(AuthState state);
         void setClient_addres();
+		//void set_closing(bool closing); //eli funtion
+
+		void WritePrefix(std::string const &_message); //eli funtion
+		void CloseClient(Server &server); //elifuntion
 };

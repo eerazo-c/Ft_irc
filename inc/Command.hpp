@@ -3,22 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   Command.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
+/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 14:00:40 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/04/21 22:15:04 by nalesso          ###   ########.fr       */
+/*   Updated: 2026/05/08 17:53:43 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-#include "header.hpp"
 
+#pragma once
+
+#include "Channel.hpp"
+#include "header.hpp"
+#include <sstream>
+#include <cmath>
+#include "Channel.hpp"
+
+class Channel;
 class Command 
 {
 	public:
 		virtual ~Command(){}
 		virtual void execute(Client& client, std::vector<std::string> args, Server &server) const = 0;
-
 };
 
 class Pass : public Command
@@ -60,5 +66,40 @@ class Quit : public Command
 {
 	public:
 		~Quit();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class PrivMsg : public Command
+{
+	public:
+		~PrivMsg();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class Kick : public Command
+{
+	public:
+		~Kick();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class Invite : public Command
+{
+	public:
+		~Invite();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class Topic : public Command
+{
+	public:
+		~Topic();
+		void execute(Client& client, std::vector<std::string> args, Server &server) const;
+};
+
+class Mode : public Command
+{
+	public:
+		~Mode();
 		void execute(Client& client, std::vector<std::string> args, Server &server) const;
 };

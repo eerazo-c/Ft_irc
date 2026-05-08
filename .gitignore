@@ -5,3 +5,9 @@ ircserv
 *.out
 *.d
 *.swp
+a.hpp
+b.hpp
+c.cpp
+d.cpp
+e.cpp
+f.cpp
