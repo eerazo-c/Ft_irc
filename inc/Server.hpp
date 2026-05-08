@@ -73,6 +73,10 @@ class Server
         struct sockaddr_in& getServer_address();
         // para luego el tipo de exception 
 
+
+        // isra epoll  send solutions 
+        void enableSendEvent(int epoll_fd, int fd_client);
+
 		//Canales eli add
 		std::map<std::string, Channel>& getChannels(){
 			return (_channels);

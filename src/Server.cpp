@@ -201,6 +201,18 @@ const std::map<std::string, Command*>& Server::getCommands() const{ return _comm
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
 // struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}
 
+
+void Server::enableSendEvent(int epoll_fd, int fd_client)
+{
+    struct epoll_event epoll_v ;
+
+    epoll_v.events = EPOLLIN | EPOLLOUT;
+    epoll_v.data.fd = fd_client;
+
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD,fd_client,&epoll_v) < 0)
+        std::cerr << "Error on SendEvent" << std::endl; 
+}
+
 //eli function
 std::string Server::servername(void) const 
 {

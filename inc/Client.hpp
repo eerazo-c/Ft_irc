@@ -23,6 +23,9 @@ class Client{
         socklen_t _addrlen;
 	//	bool _closing;
 
+        std::string recivBuff;
+        std::string sendBuff;
+
     public:
         Client();
         Client(int fd);
@@ -50,4 +53,9 @@ class Client{
 
 		void WritePrefix(std::string const &_message); //eli funtion
 		void CloseClient(Server &server); //elifuntion
+
+        //isra epollwait
+        std::string &getSendBuff();
+        void sendingBuff(const std::string& msg);
+        void clearSendingBugg();
 };
