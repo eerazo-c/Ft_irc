@@ -192,19 +192,8 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 
 	while (std::getline(ss, chan_name, ','))
 	{
-		//std::map<std::string, Channel> &channels = server.getChannels();
-		std::cout << "CANAL " << chan_name << " CLIENTES:" << std::endl;
-//comienza aqui el test
-		for (std::map<int, Client*>::iterator it = server.getClients().begin();
-		it != server.getClients().end(); ++it)
-		{
-			std::cout << it->first << " nick=" << it->second->getNick() << std::endl;
-		}
-		//termina aqui
-
 		if (chan_name.empty() || chan_name[0] != '#')
 		{
-			// opcional: enviar error IRC
 			 client.WritePrefix(ERR_NOCREATEHAS(client.getNick(), chan_name));
 			continue;
 		}
@@ -214,34 +203,20 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 
 		Channel &chan = channels[chan_name];
 
-		//  Si ya está dentro, skip
 		if (chan.isMember(client))
 			continue;
-		std::cout << "Nick: [" << client.getNick() << "]\n";
-		std::cout << "User: [" << client.getUser() << "]\n";
-		//  Añadir cliente
+	
 		chan.addClient(client);
 
-		// JOIN msg
 		std::string joinMsg = chan.buildJoinMsg(client, chan_name);
-		/*std::string joinMsg = ":" + client.getNick() + "!" +
-			client.getUser() + "@localhost JOIN " + chan_name + "\r\n";*/
 
 		chan.broadcast(joinMsg);
 
-		//  NAMES
-		std::string users = chan.getUsersList();
-
-		std::string namesMsg = ":localhost 353 " + client.getNick() +
-			" = " + chan_name + " :" + users + "\r\n";
-
-		std::string endMsg = ":localhost 366 " + client.getNick() +
-			" " + chan_name + " :End of /NAMES list\r\n";
+		std::string namesMsg = chan.buildNamesMsg(client, chan_name);
+		std::string endMsg = chan.buildEndNamesMsg(client, chan_name);
 
 		send(client.getFd(), namesMsg.c_str(), namesMsg.size(), 0);
 		send(client.getFd(), endMsg.c_str(), endMsg.size(), 0);
-		// aquí luego meter Write()
-		std::cout << "execute join" << std::endl;
 	}
 }
 
@@ -253,7 +228,7 @@ Part::~Part()
 void Part::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
 	if (args.empty() || args[0].empty())
-		return (client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "Part"))); //aqui modifique _name x args
+		return (client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "Part")));
 
 	std::string message;
 	if (args.size() > 1)
@@ -279,11 +254,6 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 			continue;
 		std::string partMsg = channel.buildPartMsg(client, chan, message);
 		
-/*	std::string partMsg = server.getChannels().partsend(client, message, chan);
-		std::string partMsg = ":" + client.getNick() + "!" +
-			client.getUser() + "@localhost PART " + chan +
-			" :" + message + "\r\n";*/
-
 		channel.broadcast(partMsg);
 		channel.removeClient(client);
 	}
@@ -303,13 +273,10 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 	else 
 		message = "";
 
-/*	std::string quitMsg = ":" + client.getNick() +
-		" QUIT :" + message + "\r\n";*/
-
 	std::map<std::string, Channel> &channels = server.getChannels();
 	Channel tmp;
 	std::string quitMsg = tmp.buildQuitMsg(client, message);
-	//std::string quitMsg = chan.buildQuitMsg(client, message);
+
 	for (std::map<std::string, Channel>::iterator it = channels.begin();
 		 it != channels.end(); ++it)
 	{
@@ -321,27 +288,12 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 			chan.removeClient(client);
 		}
 	}
-
-	/*std::string message;
-
-	if (!args.empty())
-		message = args[0];
-	else 
-		message = "";
-	
-	std::cout << client.getNick() << ": " << message << std::endl;
-	
-	client.CloseClient(server);
-
-	std::cout << "Quit execute" << std::endl;
-*/
 }
 
 PrivMsg::~PrivMsg(void)
 {
 }
 
-//PRIVMSG nick :msg
 void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
     if (args.empty())
@@ -368,11 +320,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 	
 	Channel tmp;
 
-	std::string fullMsg = tmp.buildPrivMsg(client,
-        target,
-        message);
-	/*std::string fullMsg = ":" + client.getNick() + "!" + 
-		client.getUser() + "@localhost PRIVMSG " + target + " " + message + "\r\n";*/
+	std::string fullMsg = tmp.buildPrivMsg(client, target, message);
 
 	for (std::map<int, Client *>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
     {
@@ -401,6 +349,4 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 	}
 
 	client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), target));
-	std::cout << "Broadcast to FD: " << client.getFd() << std::endl;
-	std::cout << "execute PrivMsg" << std::endl;
 }

@@ -44,10 +44,11 @@ class Channel {
 	void removeClient(Client &client);
 	void partAll(Client &client);
 
-	//std::string partsend(Client& client, std::string message, std::string chan);
-	
 	std::string buildJoinMsg(Client &client, std::string chan);
 	std::string buildPartMsg(Client &client, std::string chan, std::string message);
 	std::string buildQuitMsg(Client &client, std::string message);
 	std::string buildPrivMsg(Client &client, std::string target, std::string message);
+
+	std::string buildNamesMsg(Client &client, std::string chan);
+	std::string buildEndNamesMsg(Client &client, std::string chan);
 };
