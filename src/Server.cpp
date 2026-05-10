@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
+Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName(""), _epoll_fd(-1)
 {
     std::memset(&this->_server_address, 0, sizeof(this->_server_address));
     std::cout << "no deberias estar haciendo esto;" << std::endl;
@@ -201,7 +201,9 @@ struct sockaddr_in& Server::getServer_address(){ return _server_address;}
 std::string Server::getServerName(){ return _serverName;}
 std::map<int, Client *>& Server::getClients(){ return _clients;}
 const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
-// int Server::getEpoll_fd() const{ return epoll_fd; }
+
+void Server::setEpoll_fd(int epoll_fd) { this->_epoll_fd = epoll_fd; }
+int Server::getEpoll_fd() const { return this->_epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
 // struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}

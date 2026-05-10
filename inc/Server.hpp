@@ -30,6 +30,7 @@ class Server
         int _server_socket;
         struct sockaddr_in _server_address;
         std::string _serverName;
+        int _epoll_fd;
 
         std::map<int ,Client *> _clients;
 
@@ -71,7 +72,9 @@ class Server
         int getServer_socket() const;
         std::string getServerName();
         struct sockaddr_in& getServer_address();
-        // para luego el tipo de exception 
+        
+        void setEpoll_fd(int epoll_fd);
+        int getEpoll_fd() const;
 
 
         // isra epoll  send solutions 

@@ -50,6 +50,8 @@ int main(int ar, char const *argv[])
         return 1;
     }
     
+    irccserver.setEpoll_fd(epoll_fd);
+    
     struct epoll_event event_epoll , events_epoll[10];
     event_epoll.events = EPOLLIN; // Avisar cuando haya datos de entrada (nuevas conexiones)
     event_epoll.data.fd = irccserver.getServer_socket();   // Asociar nuestro socket principal

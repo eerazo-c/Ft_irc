@@ -25,21 +25,21 @@ void Pass::execute(Client& client, std::vector<std::string> params, Server &serv
     if (params.empty()){
         oss << ":localhost 461 * PASS :Not enough parameters\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
     if (client.getState() >= Client::PASS_ACCEPTED){
         oss << ":localhost 462 * :You may not reregister\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
     if (params[0] != server.getPass()){
         oss << ":localhost 464 * :Password incorrect\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
@@ -58,7 +58,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     if (params.empty()){
         oss << ":localhost 431 * :No nickname given\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
@@ -76,7 +76,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
             continue;
         oss << ":localhost 432 * " << nick << " :Erroneus nickname\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
     
@@ -86,7 +86,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
         if (it->second->getNick() == nick){
             oss << ":localhost 433 * " << nick << " :Nickname is already in use\r\n";
             errorMsg = oss.str();
-            send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+            client.sendingBuff(errorMsg);
             return;
         }
     }
@@ -97,7 +97,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     if (client.getState() == Client::REGISTERED) {
         oss << ":" << oldNick << "!" << client.getUser() << "@127.0.0.1 NICK :" << nick << "\r\n";
         std::string nickMsg = oss.str();
-        send(client.getFd(), nickMsg.c_str(), nickMsg.size(), 0);
+        client.sendingBuff(nickMsg);
 
         // (Nota para el futuro: Cuando tengas canales, también tendrás que enviarle 
         // este mismo mensaje a todas las personas que estén en los mismos canales 
@@ -114,7 +114,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
             << nick << "!" << user << "@" << host << "\r\n";
             
         std::string welcomeMsg = oss.str();
-        send(client.getFd(), welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        client.sendingBuff(welcomeMsg);
     }
 
     std::cout << "Nick execute: SUCCESS" << std::endl;
@@ -132,14 +132,14 @@ void User::execute(Client& client, std::vector<std::string> params, Server &serv
     if (params.empty() || params.size() < 4 || params[0].empty() || params[3].empty()){
         oss << ":localhost 461 * USER :Not enough parameters\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
     if (client.getState() == Client::REGISTERED){
         oss << ":localhost 462 * :You may not reregister\r\n";
         errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.sendingBuff(errorMsg);
         return;
     }
 
@@ -156,7 +156,7 @@ void User::execute(Client& client, std::vector<std::string> params, Server &serv
             << nick << "!" << user << "@" << host << "\r\n";
             
         std::string welcomeMsg = oss.str();
-        send(client.getFd(), welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        client.sendingBuff(welcomeMsg);
     }
 
     std::cout << "User execute: SUCCESS" << std::endl;
@@ -211,13 +211,13 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 
 		std::string joinMsg = chan.buildJoinMsg(client, chan_name);
 
-		chan.broadcast(joinMsg);
+		chan.broadcast(joinMsg, server, server.getEpoll_fd());
 
 		std::string namesMsg = chan.buildNamesMsg(client, chan_name);
 		std::string endMsg = chan.buildEndNamesMsg(client, chan_name);
 
-		send(client.getFd(), namesMsg.c_str(), namesMsg.size(), 0);
-		send(client.getFd(), endMsg.c_str(), endMsg.size(), 0);
+		client.sendingBuff(namesMsg);
+		client.sendingBuff(endMsg);
 	}
 }
 
@@ -255,7 +255,7 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 			continue;
 		std::string partMsg = channel.buildPartMsg(client, chan, message);
 		
-		channel.broadcast(partMsg);
+		channel.broadcast(partMsg, server, server.getEpoll_fd());
 		channel.removeClient(client);
 	}
 }
@@ -285,7 +285,7 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 
 		if (chan.isMember(client))
 		{
-			chan.broadcast(quitMsg);
+			chan.broadcast(quitMsg, server, server.getEpoll_fd());
 			chan.removeClient(client);
 		}
 	}
@@ -327,7 +327,8 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
     {
         if (it->second->getNick() == target)
         {
-			send(it->second->getFd(), fullMsg.c_str(), fullMsg.size(), 0);
+			it->second->sendingBuff(fullMsg);
+			server.enableSendEvent(server.getEpoll_fd(), it->second->getFd());
 			return;
         }
     }
@@ -345,7 +346,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
             return;
         }
 
-        channel.broadcastExcept(client, fullMsg);
+        channel.broadcastExcept(client, fullMsg, server, server.getEpoll_fd());
         return;
 	}
 
@@ -442,7 +443,7 @@ void Kick::execute(Client& client, std::vector<std::string> args, Server &server
 	std::string kickMsg = ":" + client.getNick() + "!" + client.getUser()
 		+ "@localhost KICK " + channelName + " " + targetNick + " :" + reason + "\r\n";
 
-	channel.broadcast(kickMsg);
+	channel.broadcast(kickMsg, server, server.getEpoll_fd());
 	channel.removeClient(*target);
 }
 
@@ -564,7 +565,7 @@ void Topic::execute(Client& client, std::vector<std::string> args, Server &serve
 
 	channel.setTopic(topic);
 	channel.broadcast(":" + client.getNick() + "!" + client.getUser()
-		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n");
+		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n", server, server.getEpoll_fd());
 }
 
 Mode::~Mode()

@@ -47,8 +47,8 @@ class Channel {
 	
 
 	void setClientChannel(Server &server);
-	void broadcast(const std::string &msg);
-	void broadcastExcept(Client &sender, const std::string &msg);
+	void broadcast(const std::string &msg, Server &server, int epoll_fd);
+	void broadcastExcept(Client &sender, const std::string &msg, Server &server, int epoll_fd);
 	std::string getUsersList() const;
 
 	bool isMember(Client &client) const;
