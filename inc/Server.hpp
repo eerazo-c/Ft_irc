@@ -52,7 +52,7 @@ class Server
         
         int bindSocketToServer();
         int listenServer();
-        int sendhandshake(int client_fd);
+        //int sendhandshake(int client_fd);
 
         void handleClientData(Client& client , const std::string& tempBuffer, Parser& parser);
         void executeCommand(Client& client, IrcMessage& message);
@@ -86,7 +86,10 @@ class Server
 
     class Error_fd : public std::exception
     {
-        virtual const char * what() const throw();
+        virtual const char * what() const throw()
+        {
+            return ("Error: fd");
+        }
     };
 };
 

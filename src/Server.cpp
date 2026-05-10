@@ -8,9 +8,9 @@ Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
 
 Server &Server::operator=(const Server &orignal)
 {
-    if (this != &orignal){} return *this;
+    if (this != &orignal){std::cout << "No de deberias estar aqui\n" ;} return *this;
 }
-//
+
 Server::Server(const Server &to_copy)
 {
     *this = to_copy;
@@ -25,22 +25,20 @@ Server::Server(int port, std::string &password,const char *serverN)
 {
     setServerName(serverN);
 
-    try
-    {
+    
         setPort(port);
         setPass(password);
 
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
-            throw("Error socket");
+            throw std::runtime_error("Error socket");
         setServer_socket(server_socket);
         if (setNonBlocking_socket(this->getServer_socket()) == -1)
-            throw("Error fcntl");
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }    
+        {
+            close(server_socket);
+            throw std::runtime_error("Error fcntl");
+        }
+    
     _commands["PASS"] = new Pass();
 	_commands["USER"] = new User();    
 	_commands["JOIN"] = new Join();
@@ -48,7 +46,7 @@ Server::Server(int port, std::string &password,const char *serverN)
 	_commands["PART"] = new Part();
 	_commands["QUIT"] = new Quit();
     _commands["PRIVMSG"] = new PrivMsg();
-	_commands["USER"] = new User();
+	//_commands["USER"] = new User(); duplicado
     _commands["KICK"] = new Kick();
     _commands["INVITE"] = new Invite();
     _commands["TOPIC"] = new Topic();
@@ -60,6 +58,9 @@ Server::Server(int port, std::string &password,const char *serverN)
 
 Server::~Server()
 {
+    if (_server_socket != -1)
+        close(_server_socket);
+
     std::map<std::string, Command*>::iterator it;
     for (it = _commands.begin(); it != _commands.end(); ++it){
         delete it->second;
@@ -80,7 +81,7 @@ void Server::addClient(int fd, Client *client)
 	_clients[fd] = client;
 /*    cliente->setFd(fd);
     _clients.insert(std::pair<int, Client *>(fd, cliente));*/
-	std::cout << "esntro aqui" << std::endl;
+//	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -108,9 +109,11 @@ int Server::bindSocketToServer()
 {
     if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_address())) < 0)
     {
-       // close()  fds
-        throw("Error in bind");
-        return -1;
+       // close()  fdsc
+        close(getServer_socket());
+        setServer_socket(-1);
+        throw Server::Error_fd();
+        //return -1;
     }
     return 1;
 }
@@ -119,18 +122,20 @@ int Server::listenServer()
    if (listen(getServer_socket(), MAX_CONECTIONS) < 0)
     {
         //closee   
-        throw("Error Listen");
-        return -1;
+        close(getServer_socket());
+        setServer_socket(-1);
+        throw Server::Error_fd();
+       // return -1;
     }
     return 1;
 }
-
-int Server::sendhandshake(int client_fd)
-{
-	//aqui modificamos la llamada desde el main esta comentada
-	//linea 138
-    return (send(client_fd, "\n",2 , 0));
-}
+// ya no lo necestiamos
+// int Server::sendhandshake(int client_fd)
+// {
+// 	//aqui modificamos la llamada desde el main esta comentada
+// 	//linea 138
+//     return (send(client_fd, "\n",2 , 0));
+// }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
     client.setMesagge(client.getMessage() + tempBuffer);
