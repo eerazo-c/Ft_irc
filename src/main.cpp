@@ -170,11 +170,13 @@ int main(int ar, char const *argv[])
                                 irccserver.getClients().erase(client_fd);
                                 close(client_fd);
                                 std::cout << YELLOW << "Error enviando, cliente desconectado" << RESET << std::endl;
-                                
+                                continue;
                             }
                             continue;
                         }
-                        sendBuffer.erase(0, sent);
+                        //sendBuffer.erase(0, sent); // esto funciona lo de debajo aun no lo se
+                        cli->clearSendingBugg();
+                        sendBuffer = cli->getSendBuff();
                     }
                     if (sendBuffer.empty())
                     {
