@@ -6,7 +6,7 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/08 17:54:59 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/11 00:03:50 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,11 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 		for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
 		{
 			if (it->second.isMember(client))
-				it->second.removeClient(client);
+            {
+                std::string partMsg = it->second.buildPartMsg(client, it->first, "Leaving");
+                it->second.broadcast(partMsg);
+                it->second.removeClient(client);
+            }
 		}
 		return;
 	}
@@ -190,9 +194,20 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 	
 	std::stringstream ss(args[0]);
 	std::string chan_name;
+    std::stringstream keyStream;
+    std::string key;
+    
+    
+    if (args.size() > 1)
+    {
+        keyStream.str(args[1]);
+    }
 
 	while (std::getline(ss, chan_name, ','))
 	{
+        key = "";
+        if (args.size() > 1)
+            std::getline(keyStream, key, ',');
 		if (chan_name.empty() || chan_name[0] != '#')
 		{
 			 client.WritePrefix(ERR_NOCREATEHAS(client.getNick(), chan_name));
@@ -206,7 +221,25 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 
 		if (chan.isMember(client))
 			continue;
-	
+        
+        if (chan.getMode('i') == true && chan.isInvited(client) == false)
+        {
+            client.WritePrefix(ERR_INVITEONLYCHAN(client.getNick(), chan_name));
+            continue;
+        }
+
+        if (chan.getMode('k') == true && key != chan.getKey())
+        {
+            client.WritePrefix(ERR_BADCHANNELKEY(client.getNick(), chan_name));
+            continue;
+        }
+
+        if (chan.getMode('l') == true && chan.getClientCount() >= chan.getLimit())
+        {
+            client.WritePrefix(ERR_CHANNELISFULL(client.getNick(), chan_name));
+            continue;
+        }
+            
 		chan.addClient(client);
 
 		std::string joinMsg = chan.buildJoinMsg(client, chan_name);
@@ -354,33 +387,31 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 
 
 
-namespace
+static Client* findClientByNick(Server &server, const std::string &nick)
 {
-    Client* findClientByNick(Server &server, const std::string &nick)
-    {
-        std::map<int, Client *> &clients = server.getClients();
-        std::map<int, Client *>::iterator it;
+	std::map<int, Client *> &clients = server.getClients();
+	std::map<int, Client *>::iterator it;
 
-        for (it = clients.begin(); it != clients.end(); ++it)
-        {
-            if (it->second != NULL && it->second->getNick() == nick)
-                return (it->second);
-        }
-        return (NULL);
-    }
-
-    std::string buildKickReason(Client &client, const std::vector<std::string> &args)
-    {
-        std::string reason;
-
-        if (args.size() < 3)
-            return (client.getNick());
-        reason = args[2];
-        for (std::size_t i = 3; i < args.size(); ++i)
-            reason += " " + args[i];
-        return (reason);
-    }
+	for (it = clients.begin(); it != clients.end(); ++it)
+	{
+		if (it->second != NULL && it->second->getNick() == nick)
+			return (it->second);
+	}
+	return (NULL);
 }
+
+static std::string buildKickReason(Client &client, const std::vector<std::string> &args)
+{
+	std::string reason;
+
+	if (args.size() < 3)
+		return (client.getNick());
+	reason = args[2];
+	for (std::size_t i = 3; i < args.size(); ++i)
+		reason += " " + args[i];
+	return (reason);
+}
+
 
 Kick::~Kick()
 {
@@ -567,13 +598,189 @@ void Topic::execute(Client& client, std::vector<std::string> args, Server &serve
 		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n");
 }
 
+static std::string buildChannelModes(const Channel& channel)
+{
+    std::string modes;
+
+    modes = "+";
+    if (channel.getMode('i') == true)
+        modes += "i";
+    if (channel.getMode('t') == true)
+        modes += "t";
+    if (channel.getMode('k') == true)
+        modes += "k";
+    if (channel.getMode('l') == true)
+        modes += "l";             
+    return (modes);       
+}
+
+static bool parsePositiveLimit(const std::string& value, int& limit)
+{
+    std::stringstream ss;
+
+    if (value.empty() == true)
+        return (false);
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        if (*it < '0' || *it > '9')
+            return (false);
+    }
+    ss << value;
+    ss >> limit;
+    if (ss.fail() == true || limit <= 0)
+        return (false);
+    return (true);
+    
+}
+
 Mode::~Mode()
 {
 }
 
 void Mode::execute(Client& client, std::vector<std::string> args, Server &server) const
 {
-	(void)client;
-	(void)args;
-	(void)server;
+    std::map<std::string, Channel>::iterator channelIt;
+    Channel *channel;
+    std::string channelName;
+    std::string modeParams;
+    
+    if (args.size() < 1)
+    {
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "MODE"));
+        return;        
+    }
+    channelName = args[0];
+    channelIt = server.getChannels().find(channelName);
+    if (channelIt == server.getChannels().end())
+    {
+        client.WritePrefix(ERR_NOSUCHCHANNEL(client.getNick(), channelName));
+        return;
+    }
+    channel = &(channelIt->second);
+    if (args.size() == 1)
+    {
+        client.WritePrefix(RPL_CHANNELMODEIS(client.getNick(), channelName,
+            buildChannelModes(*channel)));
+        return;
+    }
+
+    if (channel->isMember(client) == false)
+    {
+        client.WritePrefix(ERR_NOTONCHANNEL(client.getNick(), channelName));
+        return;
+    }
+    if (channel->isOperator(client) == false)
+    {
+        client.WritePrefix(ERR_CHANOPRIVSNEEDED(client.getNick(), channelName));
+        return;
+    }
+
+    std::string modeString;
+    char action;
+    std::size_t paramIndex;
+    
+    modeString = args[1];
+    action = '+';
+    if (modeString.empty() == true
+	    || (modeString[0] != '+' && modeString[0] != '-'))
+    {
+	    client.WritePrefix(ERR_UNKNOWNMODE(client.getNick(), modeString));
+	    return;
+    }
+    paramIndex = 2;
+    for (std::size_t i = 0; i < modeString.size(); ++i)
+    {
+        if (modeString[i] == '+' || modeString[i] == '-')
+        {
+            action = modeString[i];
+            continue;
+        }
+        if (modeString[i] == 'i')
+            channel->setMode('i', action == '+');
+        else if (modeString[i] == 't')
+            channel->setMode('t', action == '+');
+        else if (modeString[i] == 'k')
+        {
+            if (action == '+')
+            {
+                if (paramIndex >= args.size())
+                {
+                    client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "MODE"));
+                    return;
+                }
+                if (channel->getMode('k') == true)
+                {
+                    client.WritePrefix(ERR_KEYSET(client.getNick(), channelName));
+                    return;
+                }
+                channel->setKey(args[paramIndex]);
+                modeParams += " " + args[paramIndex];
+                ++paramIndex;
+            }
+            else
+                channel->setMode('k', false);
+        }
+        else if (modeString[i] == 'o')
+        {
+            Client *target;
+
+            if (paramIndex >= args.size())
+            {
+                client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "MODE"));
+                return;
+            }
+            target = findClientByNick(server, args[paramIndex]);
+            if (target == NULL)
+            {
+                client.WritePrefix(ERR_NOSUCHNICK(client.getNick(), args[paramIndex]));
+                return;
+            }
+            if (channel->isMember(*target) == false)
+            {
+                client.WritePrefix(ERR_USERNOTINCHANNEL(client.getNick(),
+                    args[paramIndex], channelName));
+                return;
+            }
+            channel->setOperator(*target, action == '+');
+            modeParams += " " + args[paramIndex];
+            ++paramIndex;
+        }
+        else if (modeString[i] == 'l')
+        {
+            int limit;
+
+            if (action == '+')
+            {
+                if (paramIndex >= args.size())
+                {
+                    client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "MODE"));
+                    return;
+                }
+                if (parsePositiveLimit(args[paramIndex], limit) == false)
+                {
+                    client.WritePrefix(ERR_INVALIDMODEPARAM(client.getNick(), channelName,
+		                std::string(1, modeString[i]), args[paramIndex]));
+                    return;
+                }
+                channel->setLimit(limit);
+                modeParams += " " + args[paramIndex];
+                ++paramIndex;
+            }
+            else
+                channel->setMode('l', false);
+        }
+        else
+        {
+            client.WritePrefix(ERR_UNKNOWNMODE(client.getNick(),
+                std::string(1, modeString[i])));
+                return;
+        }
+    }
+    
+    channel->broadcast(":" + client.getNick() + "!" + client.getUser()
+        + "@localhost MODE " + channelName + " " + modeString
+        + modeParams + "\r\n");
+
+    
+    
 }
