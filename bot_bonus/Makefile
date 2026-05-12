@@ -1,28 +1,61 @@
-NAME = bot_client
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2026/04/20 15:12:31 by elerazo-          #+#    #+#              #
+#    Updated: 2026/04/21 19:29:55 by nalesso          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+NAME		=	bot_irc
+CC			=	c++
+CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address -I inc/
+OBJDIR		=	build
+SRCSDIR		=	src
+SRCS		=	main.cpp Bot.cpp
 
-SRC = main.cpp 
-HDR = header_client.hpp
-CC = c++
-FLAGS = -Wall -Wextra -Werror -std=c++98 -ggdb
-RM = rm -rf
-OBJS_DIR = objs
+OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
+DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})
 
-OBJS = $(addprefix $(OBJS_DIR)/, $(SRC:.cpp=.o))
+PURPLE		=	\033[0;33m
+BLUE		=	\033[0;33m
+GREEN		=	\033[0;32m
+RED			=	\033[0;31m
+RESET		=	\033[m
 
-all : $(NAME)
+all: banner $(NAME)
 
-$(OBJS_DIR)/%.o : %.cpp $(HDR) Makefile
-	mkdir -p $(OBJS_DIR)
-	$(CC) $(FLAGS) -c $< -o $@
+banner:
+	@printf "%b" "$(PURPLE)\n"
+	@echo "# ========================== #"
+	@echo "#           BOT_IR           #"
+	@echo "#                            #"
+	@echo "# ========================== #"
+	@printf "%b" "\n$(RESET)"
 
-$(NAME): $(OBJS) 
-	$(CC) $(FLAGS) $(OBJS) -o $(NAME)
+$(OBJS): $(OBJDIR)/%.o : $(SRCSDIR)/%.cpp Makefile | $(OBJDIR)
+	@printf "%-42b" "$(BLUE)compiling... $(PURPLE)$(@F)$(RESET)\n"
+	@$(CC) $(CFLAGS) -MMD -MF $(OBJDIR)/$*.d -c $< -o $@
 
-clean: 
-	$(RM) $(OBJS_DIR)
-		 
-fclean: clean
-	$(RM) $(NAME)
-re: fclean all 
+$(OBJDIR):
+	@-mkdir $(OBJDIR)
 
-.PHONY: all clean fclean re 
+$(NAME): $(OBJS)
+	@printf "%-42b" "$(BLUE)linking... $(PURPLE)$(@F)$(RESET)\n"
+	@$(CC) $(CFLAGS) $^ -o $@
+
+fclean: banner clean
+	@printf "%b" "$(BLUE)$(@)ing...$(RESET)\n"
+	@rm -rf $(NAME)
+
+clean: banner
+	@printf "%b" "$(BLUE)$(@)ing...$(RESET)\n"
+	@rm -rf $(OBJDIR)
+
+re:	fclean all
+
+-include $(DEPS)
+
+.PHONY: all banner clean fclean re

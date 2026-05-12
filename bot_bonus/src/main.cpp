@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/11 19:47:35 by elerazo-          #+#    #+#             */
+/*   Updated: 2026/05/11 19:47:58 by elerazo-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -76,9 +87,10 @@ int main(int ar , char**argv)
 
     // enviar repetidamente  randMsg
     
-    std::string randMsgm[] = {"hola soy un bot" , "Huevon " , "hola humano:D"};
+    std::string randMsgm[] = {"hola soy un bot", "Huevon " , "hola humano:D",
+		"hola Isra" , "hola Nahuel" , "hola Eli" , "hola Ariel" , "eres gay?", "42BCN"};
 
-    char buffer[1024];
+    //char buffer[1024];
     time_t lastMsg = time(NULL);
 
     while (true)
@@ -86,7 +98,7 @@ int main(int ar , char**argv)
        if (time(NULL) - lastMsg >= 10)
         {
             int r = rand() % randMsgm->size();
-            send_irc_cmd(socket_t,"PRIVMSG #canal_test :" + randMsgm[r]);
+            send_irc_cmd(socket_t,"PRIVMSG #general :" + randMsgm[r]);
             lastMsg = time(NULL);
         }
     }
