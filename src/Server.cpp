@@ -55,7 +55,6 @@ Server::Server(int port, std::string &password,const char *serverN)
 
 }
 
-
 Server::~Server()
 {
     if (_server_socket != -1)
