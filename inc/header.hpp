@@ -68,6 +68,23 @@
 //std::cout << RED << "hello world" << RESET << std::endl;                                                      
 //Note: If you don't use RESET the color will remain changed until the next time you use a color code.     
 
+
+#define IRC_AUTOR "Elerazo  Israetor"
+
+#define IRC_WELCOME_MOTD \
+" __      __      .__                                 __          \n" \
+"/  \\    /  \\ ____ |  |   ____  ____   _____   ____   _/  |_  ____ \n" \
+"\\   \\/\\/   // __ \\|  | _/ ___\\/  _ \\ /     \\_/ __ \\  \\   __\\/  _ \\\n" \
+" \\        /\\  ___/|  |_\\  \\__(  <_> )  Y Y  \\  ___/   |  | (  <_> )\n" \
+"  \\__/\\  /  \\___  >____/\\___  >____/|__|_|  /\\___  >  |__|  \\____/\n" \
+"       \\/       \\/          \\/            \\/     \\/              \n" \
+"                             .___   __________   _________        \n" \
+"    ____  __ _________       |   |  \\______   \\  \\_   ___ \\       \n" \
+"   /  _ \\|  |  \\_  __ \\      |   |   |       _/  /    \\  \\/       \n" \
+"  (  <_> )  |  /|  | \\/      |   |   |    |   \\  \\     \\____      \n" \
+"   \\____/|____/ |__|         |___|   |____|_  /   \\______  /      \n" \
+"                                            \\/           \\/       \n"
+
 //AUXILIAR
 void wrong_args();
 int check_args(int n, const char *port, const char* password);

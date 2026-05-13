@@ -85,7 +85,7 @@ class Server
 			return (_channels);
 		};
 
-		std::string servername(void) const; //eli add
+		//std::string servername(void) const; //eli add
 
     class Error_fd : public std::exception
     {

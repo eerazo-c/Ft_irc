@@ -220,7 +220,7 @@ void Server::enableSendEvent(int epoll_fd, int fd_client)
 }
 
 //eli function
-std::string Server::servername(void) const 
-{
-	return ("MyircServer");
-}
+// std::string Server::servername(void) const 
+// {
+// 	return ("MyircServer");
+// }

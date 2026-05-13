@@ -157,6 +157,8 @@ void User::execute(Client& client, std::vector<std::string> params, Server &serv
             
         std::string welcomeMsg = oss.str();
         client.sendingBuff(welcomeMsg);
+        std::string welcomeascii (IRC_WELCOME_MOTD);
+        client.sendingBuff(welcomeascii);
     }
 
     std::cout << "User execute: SUCCESS" << std::endl;
@@ -354,34 +356,31 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 }
 
 
-
-namespace
+Client* findClientByNick(Server &server, const std::string &nick)
 {
-    Client* findClientByNick(Server &server, const std::string &nick)
+    std::map<int, Client *> &clients = server.getClients();
+    std::map<int, Client *>::iterator it;
+
+    for (it = clients.begin(); it != clients.end(); ++it)
     {
-        std::map<int, Client *> &clients = server.getClients();
-        std::map<int, Client *>::iterator it;
-
-        for (it = clients.begin(); it != clients.end(); ++it)
-        {
-            if (it->second != NULL && it->second->getNick() == nick)
-                return (it->second);
-        }
-        return (NULL);
+        if (it->second != NULL && it->second->getNick() == nick)
+            return (it->second);
     }
-
-    std::string buildKickReason(Client &client, const std::vector<std::string> &args)
-    {
-        std::string reason;
-
-        if (args.size() < 3)
-            return (client.getNick());
-        reason = args[2];
-        for (std::size_t i = 3; i < args.size(); ++i)
-            reason += " " + args[i];
-        return (reason);
-    }
+    return (NULL);
 }
+
+std::string buildKickReason(Client &client, const std::vector<std::string> &args)
+{
+    std::string reason;
+
+    if (args.size() < 3)
+        return (client.getNick());
+    reason = args[2];
+    for (std::size_t i = 3; i < args.size(); ++i)
+        reason += " " + args[i];
+    return (reason);
+}
+
 
 Kick::~Kick()
 {
