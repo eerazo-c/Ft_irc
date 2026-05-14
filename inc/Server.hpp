@@ -31,6 +31,7 @@ class Server
         struct sockaddr_in _server_address;
         std::string _serverName;
         int _epoll_fd;
+        std::string _ip;
 
         std::map<int ,Client *> _clients;
 
@@ -70,9 +71,10 @@ class Server
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;
+        std::string getIP() const;
         std::string getServerName();
         struct sockaddr_in& getServer_address();
-        
+        void setIP(char *ip);
         void setEpoll_fd(int epoll_fd);
         int getEpoll_fd() const;
 
