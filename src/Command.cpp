@@ -6,7 +6,7 @@
 /*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 13:37:35 by nalesso          ###   ########.fr       */
+/*   Updated: 2026/05/14 15:56:11 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 
     std::ostringstream oss;
     if (client.getState() == Client::REGISTERED) {
-        client.WritePrefix(RPL_CHANGENICK(oldNick, client.getUser(), client.getNick()));
+        client.WritePrefix(RPL_CHANGENICK(oldNick, client.getUser(), server.getIP(), client.getNick()));
 
         // (Nota para el futuro: Cuando tengas canales, también tendrás que enviarle 
         // este mismo mensaje a todas las personas que estén en los mismos canales 
@@ -87,7 +87,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 
     if (!client.getUser().empty() && !client.getRealName().empty() && client.getState() != Client::REGISTERED){
         client.setState(Client::REGISTERED);
-        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), "127.0.0.1"));
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), server.getIP()));
         std::string welcomeascii (IRC_WELCOME_MOTD);
         client.sendingBuff(welcomeascii);
     }
@@ -118,7 +118,7 @@ void User::execute(Client& client, std::vector<std::string> params, Server &serv
     std::ostringstream oss;
     if (!client.getNick().empty()){
         client.setState(Client::REGISTERED);
-        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), "127.0.0.1"));
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), server.getIP()));
         std::string welcomeascii (IRC_WELCOME_MOTD);
         client.sendingBuff(welcomeascii);
     }

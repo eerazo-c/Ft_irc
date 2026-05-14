@@ -6,7 +6,7 @@
 /*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 17:31:15 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 13:38:00 by nalesso          ###   ########.fr       */
+/*   Updated: 2026/05/14 15:55:26 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 #define RPL_NOTOPIC(nick, channel) "331 " + (nick) + (channel) + " :No topic is set"
 #define RPL_TOPIC(nick, channel, topic) "332 " + (nick) + " " + (channel) + "  :" + (topic)
 #define RPL_INVITING(nick, channel, target) "341 " + (nick) + " " + (channel) + " " + (target)
-#define RPL_CHANGENICK(oldNick, user, nick) ":" + (oldNick) + "!" + (user) + " NICK :" + (nick)
+#define RPL_CHANGENICK(oldNick, user, host, nick) ":" + (oldNick) + "!" + (user) + "@" + (host) + " NICK :" + (nick)
 
 #define RPL_NAMREPLY() "353 " + (client) + (symbol) + (channel) + " : [prefix]" + (nick) +  [prefix] + (nick)
 #define RPL_ENDOFNAMES() "366 " + (client) + (channel) + " :End of /NAMES list"
