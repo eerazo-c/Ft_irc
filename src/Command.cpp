@@ -6,7 +6,7 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 16:20:05 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/14 17:52:55 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,11 +78,17 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 
     std::ostringstream oss;
     if (client.getState() == Client::REGISTERED) {
-        client.WritePrefix(RPL_CHANGENICK(oldNick, client.getUser(), server.getIP(), client.getNick()));
+        std::string nickMsg = RPL_CHANGENICK(oldNick, client.getUser(), server.getIP(), client.getNick());
+        client.WritePrefix(nickMsg);
 
-        // (Nota para el futuro: Cuando tengas canales, también tendrás que enviarle 
-        // este mismo mensaje a todas las personas que estén en los mismos canales 
-        // que este usuario, ¡para que vean que se cambió el nombre!)
+        std::string broadcastMsg = nickMsg + "\r\n";
+        std::map<std::string, Channel>& channels = server.getChannels();
+        
+        for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+            if (it->second.isMember(client)) {
+                it->second.broadcastExcept(client, broadcastMsg, server, server.getEpoll_fd());
+            }
+        }
     }
 
     if (!client.getUser().empty() && !client.getRealName().empty() && client.getState() != Client::REGISTERED){
