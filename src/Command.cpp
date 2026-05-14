@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
+/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/08 17:54:59 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/14 15:56:11 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,27 +19,18 @@
 
 Pass::~Pass(){}
 void Pass::execute(Client& client, std::vector<std::string> params, Server &server) const{
-    std::ostringstream oss;
-    std::string errorMsg;
-
     if (params.empty()){
-        oss << ":localhost 461 * PASS :Not enough parameters\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "PASS"));
         return;
     }
 
     if (client.getState() >= Client::PASS_ACCEPTED){
-        oss << ":localhost 462 * :You may not reregister\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_ALREADYREGISTERED(client.getNick()));
         return;
     }
 
     if (params[0] != server.getPass()){
-        oss << ":localhost 464 * :Password incorrect\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_PASSWORDINCORRECT(client.getNick()));
         return;
     }
 
@@ -49,16 +40,11 @@ void Pass::execute(Client& client, std::vector<std::string> params, Server &serv
 
 Nick::~Nick(){}
 void Nick::execute(Client& client, std::vector<std::string> params, Server &server) const{
-    std::ostringstream oss;
-    std::string errorMsg;
-
     if (client.getState() < Client::PASS_ACCEPTED)
         return;
 
     if (params.empty()){
-        oss << ":localhost 431 * :No nickname given\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_NONICKNAMEGIVEN(client.getNick()));
         return;
     }
 
@@ -74,9 +60,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
             continue;
         if (i != 0 && (isalnum(c) || c == '-'))
             continue;
-        oss << ":localhost 432 * " << nick << " :Erroneus nickname\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_ERRONEUSNICKNAME(client.getNick()));
         return;
     }
     
@@ -84,9 +68,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     std::map<int, Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it){
         if (it->second->getNick() == nick){
-            oss << ":localhost 433 * " << nick << " :Nickname is already in use\r\n";
-            errorMsg = oss.str();
-            send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+            client.WritePrefix(ERR_NICKNAMEISALREADYINUSE(client.getNick()));
             return;
         }
     }
@@ -94,10 +76,9 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     std::string oldNick = client.getNick(); 
     client.setNick(nick);
 
+    std::ostringstream oss;
     if (client.getState() == Client::REGISTERED) {
-        oss << ":" << oldNick << "!" << client.getUser() << "@127.0.0.1 NICK :" << nick << "\r\n";
-        std::string nickMsg = oss.str();
-        send(client.getFd(), nickMsg.c_str(), nickMsg.size(), 0);
+        client.WritePrefix(RPL_CHANGENICK(oldNick, client.getUser(), server.getIP(), client.getNick()));
 
         // (Nota para el futuro: Cuando tengas canales, también tendrás que enviarle 
         // este mismo mensaje a todas las personas que estén en los mismos canales 
@@ -106,15 +87,9 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 
     if (!client.getUser().empty() && !client.getRealName().empty() && client.getState() != Client::REGISTERED){
         client.setState(Client::REGISTERED);
-        std::string nick = client.getNick();
-        std::string user = client.getUser();
-        std::string host = "127.0.0.1";
-        
-        oss << ":localhost 001 " << nick << " :Welcome to the Internet Relay Network " 
-            << nick << "!" << user << "@" << host << "\r\n";
-            
-        std::string welcomeMsg = oss.str();
-        send(client.getFd(), welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), server.getIP()));
+        std::string welcomeascii (IRC_WELCOME_MOTD);
+        client.sendingBuff(welcomeascii);
     }
 
     std::cout << "Nick execute: SUCCESS" << std::endl;
@@ -123,40 +98,29 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 User::~User(){}
 void User::execute(Client& client, std::vector<std::string> params, Server &server) const{
     (void)server;
-    std::ostringstream oss;
-    std::string errorMsg;
 
     if (client.getState() < Client::PASS_ACCEPTED)
         return;
 
     if (params.empty() || params.size() < 4 || params[0].empty() || params[3].empty()){
-        oss << ":localhost 461 * USER :Not enough parameters\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "USER"));
         return;
     }
 
     if (client.getState() == Client::REGISTERED){
-        oss << ":localhost 462 * :You may not reregister\r\n";
-        errorMsg = oss.str();
-        send(client.getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+        client.WritePrefix(ERR_ALREADYREGISTERED(client.getNick()));
         return;
     }
 
     client.setUser(params[0]);
     client.setRealName(params[3]);
 
+    std::ostringstream oss;
     if (!client.getNick().empty()){
         client.setState(Client::REGISTERED);
-        std::string nick = client.getNick();
-        std::string user = client.getUser();
-        std::string host = "127.0.0.1";
-        
-        oss << ":localhost 001 " << nick << " :Welcome to the Internet Relay Network " 
-            << nick << "!" << user << "@" << host << "\r\n";
-            
-        std::string welcomeMsg = oss.str();
-        send(client.getFd(), welcomeMsg.c_str(), welcomeMsg.size(), 0);
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), server.getIP()));
+        std::string welcomeascii (IRC_WELCOME_MOTD);
+        client.sendingBuff(welcomeascii);
     }
 
     std::cout << "User execute: SUCCESS" << std::endl;
@@ -211,13 +175,13 @@ void Join::execute(Client& client, std::vector<std::string> args, Server &server
 
 		std::string joinMsg = chan.buildJoinMsg(client, chan_name);
 
-		chan.broadcast(joinMsg);
+		chan.broadcast(joinMsg, server, server.getEpoll_fd());
 
 		std::string namesMsg = chan.buildNamesMsg(client, chan_name);
 		std::string endMsg = chan.buildEndNamesMsg(client, chan_name);
 
-		send(client.getFd(), namesMsg.c_str(), namesMsg.size(), 0);
-		send(client.getFd(), endMsg.c_str(), endMsg.size(), 0);
+		client.sendingBuff(namesMsg);
+		client.sendingBuff(endMsg);
 	}
 }
 
@@ -255,7 +219,7 @@ void Part::execute(Client& client, std::vector<std::string> args, Server &server
 			continue;
 		std::string partMsg = channel.buildPartMsg(client, chan, message);
 		
-		channel.broadcast(partMsg);
+		channel.broadcast(partMsg, server, server.getEpoll_fd());
 		channel.removeClient(client);
 	}
 }
@@ -285,7 +249,7 @@ void Quit::execute(Client& client, std::vector<std::string> args, Server &server
 
 		if (chan.isMember(client))
 		{
-			chan.broadcast(quitMsg);
+			chan.broadcast(quitMsg, server, server.getEpoll_fd());
 			chan.removeClient(client);
 		}
 	}
@@ -327,7 +291,8 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
     {
         if (it->second->getNick() == target)
         {
-			send(it->second->getFd(), fullMsg.c_str(), fullMsg.size(), 0);
+			it->second->sendingBuff(fullMsg);
+			server.enableSendEvent(server.getEpoll_fd(), it->second->getFd());
 			return;
         }
     }
@@ -345,7 +310,7 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
             return;
         }
 
-        channel.broadcastExcept(client, fullMsg);
+        channel.broadcastExcept(client, fullMsg, server, server.getEpoll_fd());
         return;
 	}
 
@@ -353,34 +318,31 @@ void PrivMsg::execute(Client& client, std::vector<std::string> args, Server &ser
 }
 
 
-
-namespace
+Client* findClientByNick(Server &server, const std::string &nick)
 {
-    Client* findClientByNick(Server &server, const std::string &nick)
+    std::map<int, Client *> &clients = server.getClients();
+    std::map<int, Client *>::iterator it;
+
+    for (it = clients.begin(); it != clients.end(); ++it)
     {
-        std::map<int, Client *> &clients = server.getClients();
-        std::map<int, Client *>::iterator it;
-
-        for (it = clients.begin(); it != clients.end(); ++it)
-        {
-            if (it->second != NULL && it->second->getNick() == nick)
-                return (it->second);
-        }
-        return (NULL);
+        if (it->second != NULL && it->second->getNick() == nick)
+            return (it->second);
     }
-
-    std::string buildKickReason(Client &client, const std::vector<std::string> &args)
-    {
-        std::string reason;
-
-        if (args.size() < 3)
-            return (client.getNick());
-        reason = args[2];
-        for (std::size_t i = 3; i < args.size(); ++i)
-            reason += " " + args[i];
-        return (reason);
-    }
+    return (NULL);
 }
+
+std::string buildKickReason(Client &client, const std::vector<std::string> &args)
+{
+    std::string reason;
+
+    if (args.size() < 3)
+        return (client.getNick());
+    reason = args[2];
+    for (std::size_t i = 3; i < args.size(); ++i)
+        reason += " " + args[i];
+    return (reason);
+}
+
 
 Kick::~Kick()
 {
@@ -442,7 +404,7 @@ void Kick::execute(Client& client, std::vector<std::string> args, Server &server
 	std::string kickMsg = ":" + client.getNick() + "!" + client.getUser()
 		+ "@localhost KICK " + channelName + " " + targetNick + " :" + reason + "\r\n";
 
-	channel.broadcast(kickMsg);
+	channel.broadcast(kickMsg, server, server.getEpoll_fd());
 	channel.removeClient(*target);
 }
 
@@ -564,7 +526,7 @@ void Topic::execute(Client& client, std::vector<std::string> args, Server &serve
 
 	channel.setTopic(topic);
 	channel.broadcast(":" + client.getNick() + "!" + client.getUser()
-		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n");
+		+ "@localhost TOPIC " + channelName + " :" + topic + "\r\n", server, server.getEpoll_fd());
 }
 
 Mode::~Mode()

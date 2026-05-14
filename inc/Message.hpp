@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
+/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 17:31:15 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/08 17:31:16 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/14 15:55:26 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,44 +15,47 @@
 //networkname = servidor en 001
 
 //Bienvenida + info + se crean cosas
-#define RPL_WELCOME(nick, server) "001 " + (nick) + ":Welcome to the INEA Network," + (server)
-#define RPL_YOURHOST(nick, server) "002 " + (nick) + ":Your host is " + (server) + "running version IRC42"
-#define RPL_CREATED(nick, datetime) "003 " + (nick) + ":This server was created" + (datetime)
+#define RPL_WELCOME(nick, user, host) "001 " + (nick) + " :Welcome to the INEA Network, " + (nick) + "!" + (user) + "@" + (host)
+#define RPL_YOURHOST(nick, server) "002 " + (nick) + " :Your host is " + (server) + "running version IRC42"
+#define RPL_CREATED(nick, datetime) "003 " + (nick) + " :This server was created" + (datetime)
 #define RPL_MYINFO(nick, server) "004 " + (nick) + (server)
 #define RPL_UMODEIS(nick, modes) "221 " +  (nick) + (modes)
 #define RPL_CHANNELMODEIS(client, channel, modes) "324 " +  (client) + (channel) + (modes)
-#define RPL_NOTOPIC(nick, channel) "331 " + (nick) + (channel) + ":No topic is set"
-#define RPL_TOPIC(nick, channel, topic) "332 " + (nick) + " " + (channel) + " :" + (topic)
+#define RPL_NOTOPIC(nick, channel) "331 " + (nick) + (channel) + " :No topic is set"
+#define RPL_TOPIC(nick, channel, topic) "332 " + (nick) + " " + (channel) + "  :" + (topic)
 #define RPL_INVITING(nick, channel, target) "341 " + (nick) + " " + (channel) + " " + (target)
+#define RPL_CHANGENICK(oldNick, user, host, nick) ":" + (oldNick) + "!" + (user) + "@" + (host) + " NICK :" + (nick)
 
-
-#define RPL_NAMREPLY() "353 " + (client) + (symbol) + (channel) + ": [prefix]" + (nick) +  [prefix] + (nick)
-#define RPL_ENDOFNAMES() "366 " + (client) + (channel) + ":End of /NAMES list"
+#define RPL_NAMREPLY() "353 " + (client) + (symbol) + (channel) + " : [prefix]" + (nick) +  [prefix] + (nick)
+#define RPL_ENDOFNAMES() "366 " + (client) + (channel) + " :End of /NAMES list"
 
 // Errores
-#define ERR_NOSUCHNICK(nick, target) "401 " + (nick) + (target) + ":No such nick/channel"
-#define ERR_NOSUCHCHANNEL(nick, channel) "403 " + (nick) + (channel) + ":No such channel"
-#define ERR_NOCREATEHAS(nick, channel) "403 " + (nick) +  " " + (channel) + ":You can't create channel without #"
-#define ERR_CANNOTSENDTOCHAN(nick, channel) "404 " + (nick) + (channel) + ":Cannot send to channel"
-#define ERR_NORECIPIENT(nick, command) "411 " + (nick) + ":No recipient given" + (command)
-#define ERR_NOTEXTTOSEND(nick) "412 " + (nick) + ":No text to send"
-#define ERR_UNKNOWNCOMMAND(nick, command) "421 " + (nick) + (command) + ":Unknown command"
-#define ERR_ERRONEUSNICKNAME(nick) "432 " + (nick) + ":Erroneus nickname"
-#define ERR_ERRONEUSNICKNAMETOOLONG(nick) "432 " + (nick) + ":Erroneus nickname too long"
-#define ERR_ERRORNICKNAMETOOLONG(nick) "432 " + (nick) + ":Nickname too long"
-#define ERR_ERRONEUSNICKNAMEINUSE(nick) "432 " + (nick) + ":Nickname in use"
-#define ERR_USERNOTINCHANNEL(nick, target, channel) "441 " + (nick) + " " + (target) + " " + (channel) + " :They aren't on that channel"
-#define ERR_NOTONCHANNEL(nick, channel) "442 " + (nick) + (channel) + ":You're not on that channel"
-#define ERR_USERONCHANNEL(nick, target, channel) "443 " + (nick) + " " + (target) + " " + (channel) + " :is already on channel"
-#define ERR_NOTREGISTERED(nick) "451 " +  (nick) + ":You have not registered"
-#define ERR_NEEDMOREPARAMS(nick, command) "461 " + (nick) + (command) + ":Not enough parameters"
-#define ERR_ALREADYREGISTERED(nick) "462 " + (nick) + ":You may not reregister"
-#define ERR_KEYSET(nick, channel) "467 " + (nick) + " " + (channel) + " :Channel key already set"
-#define ERR_CHANNELISFULL(nick, channel) "471 " + (nick) + (channel) + ":Cannot join channel (+l)" 
-#define ERR_UNKNOWNMODE(nick, modechar) "472 " + (nick) + (modechar) + ":is unknown mode char to me"
-#define ERR_INVITEONLYCHAN(nick, channel) "473 " + (nick) + (channel) + ":Cannot join channel (+i)"
-#define ERR_BADCHANNELKEY(nick, channel) "475 " + (nick) + (channel) + ":Cannot join channel (+k)"
-#define ERR_NOCHANMODES(nick, channel) "477 " + (nick) + " " + (channel) + " :Channel doesn't support modes"
-#define ERR_CHANOPRIVSNEEDED(nick, channel) "482 " +  (nick) +  (channel) + ":You're not channel operator"
-#define ERR_USERSDONTMATCH(nick) "502 " + (nick) + ":Cant change mode for other users" 
-#define ERR_INVALIDMODEPARAM(nick, target, modechar, parameter) "696 " + (nick) + (target) + (modechar) + (parameter) + ":Invalid mode parameter"
+#define ERR_NOSUCHNICK(nick, target) "401 " + (nick) + (target) + " :No such nick/channel"
+#define ERR_NOSUCHCHANNEL(nick, channel) "403 " + (nick) + (channel) + " :No such channel"
+#define ERR_NOCREATEHAS(nick, channel) "403 " + (nick) +  " " + (channel) + " :You can't create channel without #"
+#define ERR_CANNOTSENDTOCHAN(nick, channel) "404 " + (nick) + (channel) + " :Cannot send to channel"
+#define ERR_NORECIPIENT(nick, command) "411 " + (nick) + " :No recipient given" + (command)
+#define ERR_NOTEXTTOSEND(nick) "412 " + (nick) + " :No text to send"
+#define ERR_UNKNOWNCOMMAND(nick, command) "421 " + (nick) + (command) + " :Unknown command"
+#define ERR_NONICKNAMEGIVEN(nick) "431 " + (nick) + " :No nickname given"
+#define ERR_ERRONEUSNICKNAME(nick) "432 " + (nick) + " :Erroneus nickname"
+#define ERR_ERRONEUSNICKNAMETOOLONG(nick) "432 " + (nick) + " :Erroneus nickname too long"
+#define ERR_ERRORNICKNAMETOOLONG(nick) "432 " + (nick) + " :Nickname too long"
+#define ERR_ERRONEUSNICKNAMEINUSE(nick) "432 " + (nick) + " :Nickname in use"
+#define ERR_NICKNAMEISALREADYINUSE(nick) "433 " + (nick) + " :Nickname is already in use"
+#define ERR_USERNOTINCHANNEL(nick, target, channel) "441 " + (nick) + " " + (target) + " " + (channel) + "  :They aren't on that channel"
+#define ERR_NOTONCHANNEL(nick, channel) "442 " + (nick) + (channel) + " :You're not on that channel"
+#define ERR_USERONCHANNEL(nick, target, channel) "443 " + (nick) + " " + (target) + " " + (channel) + "  :is already on channel"
+#define ERR_NOTREGISTERED(nick) "451 " +  (nick) + " :You have not registered"
+#define ERR_NEEDMOREPARAMS(nick, command) "461 " + (nick) + (command) + " :Not enough parameters"
+#define ERR_ALREADYREGISTERED(nick) "462 " + (nick) + " :You may not reregister"
+#define ERR_PASSWORDINCORRECT(nick) "464 " + (nick) + " :Password incorrect"
+#define ERR_KEYSET(nick, channel) "467 " + (nick) + " " + (channel) + "  :Channel key already set"
+#define ERR_CHANNELISFULL(nick, channel) "471 " + (nick) + (channel) + " :Cannot join channel (+l)" 
+#define ERR_UNKNOWNMODE(nick, modechar) "472 " + (nick) + (modechar) + " :is unknown mode char to me"
+#define ERR_INVITEONLYCHAN(nick, channel) "473 " + (nick) + (channel) + " :Cannot join channel (+i)"
+#define ERR_BADCHANNELKEY(nick, channel) "475 " + (nick) + (channel) + " :Cannot join channel (+k)"
+#define ERR_NOCHANMODES(nick, channel) "477 " + (nick) + " " + (channel) + "  :Channel doesn't support modes"
+#define ERR_CHANOPRIVSNEEDED(nick, channel) "482 " +  (nick) +  (channel) + " :You're not channel operator"
+#define ERR_USERSDONTMATCH(nick) "502 " + (nick) + " :Cant change mode for other users" 
+#define ERR_INVALIDMODEPARAM(nick, target, modechar, parameter) "696 " + (nick) + (target) + (modechar) + (parameter) + " :Invalid mode parameter"

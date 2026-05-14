@@ -2,33 +2,49 @@
 
 //std::map<int, Client> clients;
 
-int  setNonBlocking(int fd)
-{
-    int flags; 
-    while ((flags = fcntl(fd, F_GETFL, 0)) == -1)
-    {
-        if (errno != EINTR)
-            return -1;
-    }
-    while (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        if (errno != EINTR)  
-            return -1;
-    }
-    return 1;
-}
+// int  setNonBlockingT(int fd)
+// {
+//     int flags; 
+//     while ((flags = fcntl(fd, F_GETFL, 0)) == -1)
+//     {
+//         if (errno != EINTR)
+//             return -1;
+//     }
+//     while (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+//         if (errno != EINTR)  
+//             return -1;
+//     }
+//     return 1;
+// }
+
+
 
 int main(int ar, char const *argv[])
 {
-    
     if(check_args(ar , argv[1], argv[2]) == -1)
         return 1;   
     
     std::string in_password (argv[2]);
     Server irccserver (std::atoi(argv[1]), in_password, "INEA_ecuatorial");
     std::memset(&(irccserver.getServer_address()), 0, sizeof(irccserver.getServer_address()));
+    // test ip
+    char hostaname[256];
+    if (gethostname(hostaname,sizeof(hostaname)) == -1)
+    {
+        std::cerr << "hostname" << std::endl;
+        return 1;
+    }
+    struct hostent* host_e = gethostbyname(hostaname);
+    if (host_e == NULL) {
+        herror("gethostbyname");
+        return 1;
+    }
+    char *ip_loc = inet_ntoa(*((struct in_addr*)host_e->h_addr_list[0]));
+    // test end
     try
     {    
         irccserver.setServer_address();
+        irccserver.setIP(ip_loc);
         irccserver.setSockectReusable();    
         irccserver.bindSocketToServer();
         irccserver.listenServer();
@@ -36,7 +52,8 @@ int main(int ar, char const *argv[])
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << MAGENTA<< e.what() << RESET <<std::endl ;
+        return 1;
     }
     
     //////////////////////////
@@ -49,8 +66,10 @@ int main(int ar, char const *argv[])
         return 1;
     }
     
+    irccserver.setEpoll_fd(epoll_fd);
+    
     struct epoll_event event_epoll , events_epoll[10];
-    event_epoll.events = EPOLLIN | EPOLLET; // Avisar cuando haya datos de entrada (nuevas conexiones)
+    event_epoll.events = EPOLLIN; // Avisar cuando haya datos de entrada (nuevas conexiones)
     event_epoll.data.fd = irccserver.getServer_socket();   // Asociar nuestro socket principal
     if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, irccserver.getServer_socket(), &event_epoll)< 0)
     {
@@ -85,6 +104,7 @@ int main(int ar, char const *argv[])
                   &nclient->getAddressLen());
                 if(new_socket < 0)
                 { 
+                    delete nclient;
                     if(errno == EAGAIN || errno == EWOULDBLOCK)
                         break;
                     std::cerr << "Error in accept" << std::endl;
@@ -102,7 +122,7 @@ int main(int ar, char const *argv[])
                 irccserver.addClient(new_socket,nclient);
 
                 struct epoll_event new_event_c;
-                new_event_c.events = EPOLLIN; 
+                new_event_c.events = EPOLLIN;
                 new_event_c.data.fd = new_socket;
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_socket, &new_event_c);
                 std::cout << "Nuevo cliente conectado y vigilado." << std::endl;
@@ -111,52 +131,80 @@ int main(int ar, char const *argv[])
             else 
             {
                 int client_fd = events_epoll[i].data.fd;
-                char buffer[1024] = {0};
-                int bytes = recv(client_fd, buffer, sizeof(buffer) -1 , 0);
-
-                if (bytes == -1)
+                // antiguo
+                // Client *cli = irccserver.getClients()[client_fd];
+                // if (!cli)
+                //     continue;
+                //new
+                std::map<int, Client*>::iterator it;   
+                it = irccserver.getClients().find(client_fd);
+                if (it == irccserver.getClients().end())
+                    continue;
+                Client* cli = it->second;
+                // end
+                if ( events_epoll[i].events & EPOLLIN)
                 {
-                    if(errno != EAGAIN && errno != EWOULDBLOCK)
+                    char buffer[1024];
+                    int bytes = recv(client_fd, buffer, sizeof(buffer) -1 , 0);
+                    if (bytes > 0)
+                        buffer[bytes] = '\0';
+                    if (bytes <= 0)
                     {
-                        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-                        std::cout << YELLOW << "Cliente desconectado. on -1" << RESET << std::endl;
-                        close(client_fd);
+                        if (bytes == 0 || (errno != EAGAIN && errno != EWOULDBLOCK))
+                        {
+                            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
+                            delete cli;
+                            irccserver.getClients().erase(client_fd);
+                            close(client_fd);
+                            std::cout << YELLOW << "Cliente desconectado. on 0" << RESET << std::endl;
+                        }
+                        continue;
                     }
-                    continue;
-                } 
-                else if (bytes == 0)
-                {
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-                    std::cout << YELLOW << "Cliente desconectado.  on 0" << RESET << std::endl;
-                    close(client_fd);
-                    continue;
+                    else 
+                    {
+                        std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
+                        irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
+                        
+                        if (!cli->getSendBuff().empty())
+                        {
+                            irccserver.enableSendEvent(epoll_fd, client_fd);
+                        }
+                    }
                 }
-                else 
+                if ( events_epoll[i].events & EPOLLOUT)
                 {
-                    
-                    std::cout << GREEN << "Recibido: " << buffer << RESET << std::endl;
-                    /*if (irccserver.sendhandshake(client_fd) == -1)
+                    std::string& sendBuffer = cli->getSendBuff();
+
+                    if (!sendBuffer.empty())
                     {
-                        std::cerr << "Error in handshake" << std::endl;
-                       continue;
+                        int sent = send(client_fd,sendBuffer.c_str(),sendBuffer.size(),0);
+
+                        if (sent < 0)
+                        {
+                            if (errno != EAGAIN && errno != EWOULDBLOCK)
+                            {
+                                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
+                                delete cli; // doubt   no se si deberia hacer esto
+                                irccserver.getClients().erase(client_fd);
+                                close(client_fd);
+                                std::cout << YELLOW << "Error enviando, cliente desconectado" << RESET << std::endl;
+                                continue;
+                            }
+                            continue;
+                        }
+                        //sendBuffer.erase(0, sent); // esto funciona lo de debajo aun no lo se
+                        cli->clearSendingBugg();
+                        sendBuffer = cli->getSendBuff();
                     }
-					*/
-					//std::map<int, Client*>& clients = irccserver.getClients();
-					//std::map<int, Client*>::iterator it = clients.find(client_fd);
-
-                    /*Client* cl = irccserver.getClients()[client_fd];
-
-					if (!cl)
-					{
-    				std::cout << "CLIENTE NULL 💀" << std::endl;
-    				continue;
-					}*/
-
-				//	irccserver.handleClientData(*(it->second), std::string(buffer), parser);
-                    irccserver.handleClientData(*irccserver.getClients()[client_fd], std::string(buffer), parser);
+                    if (sendBuffer.empty())
+                    {
+                        struct epoll_event ev;
+                        ev.events = EPOLLIN;
+                        ev.data.fd = client_fd;
+                        epoll_ctl(epoll_fd, EPOLL_CTL_MOD, client_fd, &ev);
+                    }
                 }
             }
-       
         }
     }
     close (epoll_fd);

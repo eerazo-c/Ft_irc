@@ -74,15 +74,16 @@ void Channel::removeClient(Client &client)
 }
 
 
-void Channel::broadcast(const std::string &msg){
+void Channel::broadcast(const std::string &msg, Server &server, int epoll_fd){
 	for (std::map<int, Client*>::iterator it = _clients.begin();
 		 it != _clients.end(); ++it)
 	{
-		send(it->first, msg.c_str(), msg.size(), 0);
+		it->second->sendingBuff(msg);
+		server.enableSendEvent(epoll_fd, it->second->getFd());
 	}
 }
 
-void Channel::broadcastExcept(Client &sender, const std::string &msg)
+void Channel::broadcastExcept(Client &sender, const std::string &msg, Server &server, int epoll_fd)
 {	
 	for (std::map<int, Client*>::iterator it = _clients.begin();
 		 it != _clients.end(); ++it)
@@ -91,7 +92,8 @@ void Channel::broadcastExcept(Client &sender, const std::string &msg)
 
 		if (client->getFd() != sender.getFd())
 		{
-			send(client->getFd(), msg.c_str(), msg.size(), 0);
+			client->sendingBuff(msg);
+			server.enableSendEvent(epoll_fd, client->getFd());
 		}
 	}
 }
