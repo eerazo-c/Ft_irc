@@ -30,6 +30,8 @@ class Server
         int _server_socket;
         struct sockaddr_in _server_address;
         std::string _serverName;
+        int _epoll_fd;
+        std::string _ip;
 
         std::map<int ,Client *> _clients;
 
@@ -52,7 +54,7 @@ class Server
         
         int bindSocketToServer();
         int listenServer();
-        int sendhandshake(int client_fd);
+        //int sendhandshake(int client_fd);
 
         void handleClientData(Client& client , const std::string& tempBuffer, Parser& parser);
         void executeCommand(Client& client, IrcMessage& message);
@@ -69,20 +71,30 @@ class Server
         std::string getPass() const ;
         int getPort() const;
         int getServer_socket() const;
+        std::string getIP() const;
         std::string getServerName();
         struct sockaddr_in& getServer_address();
-        // para luego el tipo de exception 
+        void setIP(char *ip);
+        void setEpoll_fd(int epoll_fd);
+        int getEpoll_fd() const;
+
+
+        // isra epoll  send solutions 
+        void enableSendEvent(int epoll_fd, int fd_client);
 
 		//Canales eli add
 		std::map<std::string, Channel>& getChannels(){
 			return (_channels);
 		};
 
-		std::string servername(void) const; //eli add
+		//std::string servername(void) const; //eli add
 
     class Error_fd : public std::exception
     {
-        virtual const char * what() const throw();
+        virtual const char * what() const throw()
+        {
+            return ("Error: fd");
+        }
     };
 };
 

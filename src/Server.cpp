@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
+Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName(""), _epoll_fd(-1)
 {
     std::memset(&this->_server_address, 0, sizeof(this->_server_address));
     std::cout << "no deberias estar haciendo esto;" << std::endl;
@@ -8,9 +8,9 @@ Server::Server() : _port_s(0),_password(""),_server_socket(-1), _serverName("")
 
 Server &Server::operator=(const Server &orignal)
 {
-    if (this != &orignal){} return *this;
+    if (this != &orignal){std::cout << "No de deberias estar aqui\n" ;} return *this;
 }
-//
+
 Server::Server(const Server &to_copy)
 {
     *this = to_copy;
@@ -25,22 +25,20 @@ Server::Server(int port, std::string &password,const char *serverN)
 {
     setServerName(serverN);
 
-    try
-    {
+    
         setPort(port);
         setPass(password);
 
         int server_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (server_socket < 0)
-            throw("Error socket");
+            throw std::runtime_error("Error socket");
         setServer_socket(server_socket);
         if (setNonBlocking_socket(this->getServer_socket()) == -1)
-            throw("Error fcntl");
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }    
+        {
+            close(server_socket);
+            throw std::runtime_error("Error fcntl");
+        }
+    
     _commands["PASS"] = new Pass();
 	_commands["USER"] = new User();    
 	_commands["JOIN"] = new Join();
@@ -56,9 +54,11 @@ Server::Server(int port, std::string &password,const char *serverN)
 
 }
 
-
 Server::~Server()
 {
+    if (_server_socket != -1)
+        close(_server_socket);
+
     std::map<std::string, Command*>::iterator it;
     for (it = _commands.begin(); it != _commands.end(); ++it){
         delete it->second;
@@ -79,7 +79,7 @@ void Server::addClient(int fd, Client *client)
 	_clients[fd] = client;
 /*    cliente->setFd(fd);
     _clients.insert(std::pair<int, Client *>(fd, cliente));*/
-	std::cout << "esntro aqui" << std::endl;
+//	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -107,9 +107,11 @@ int Server::bindSocketToServer()
 {
     if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_address())) < 0)
     {
-       // close()  fds
-        throw("Error in bind");
-        return -1;
+       // close()  fdsc
+        close(getServer_socket());
+        setServer_socket(-1);
+        throw Server::Error_fd();
+        //return -1;
     }
     return 1;
 }
@@ -118,18 +120,20 @@ int Server::listenServer()
    if (listen(getServer_socket(), MAX_CONECTIONS) < 0)
     {
         //closee   
-        throw("Error Listen");
-        return -1;
+        close(getServer_socket());
+        setServer_socket(-1);
+        throw Server::Error_fd();
+       // return -1;
     }
     return 1;
 }
-
-int Server::sendhandshake(int client_fd)
-{
-	//aqui modificamos la llamada desde el main esta comentada
-	//linea 138
-    return (send(client_fd, "\n",2 , 0));
-}
+// ya no lo necestiamos
+// int Server::sendhandshake(int client_fd)
+// {
+// 	//aqui modificamos la llamada desde el main esta comentada
+// 	//linea 138
+//     return (send(client_fd, "\n",2 , 0));
+// }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
     client.setMesagge(client.getMessage() + tempBuffer);
@@ -188,6 +192,9 @@ void Server::setServer_address()
     this->_server_address.sin_addr.s_addr=INADDR_ANY;
     this->_server_address.sin_port = htons(getPort());
 }
+void Server::setIP(char *ip) { _ip = ip;}
+
+std::string Server::getIP() const { return (_ip);}
 std::string Server::getPass()const { return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
@@ -195,13 +202,27 @@ struct sockaddr_in& Server::getServer_address(){ return _server_address;}
 std::string Server::getServerName(){ return _serverName;}
 std::map<int, Client *>& Server::getClients(){ return _clients;}
 const std::map<std::string, Command*>& Server::getCommands() const{ return _commands;}
-// int Server::getEpoll_fd() const{ return epoll_fd; }
+
+void Server::setEpoll_fd(int epoll_fd) { this->_epoll_fd = epoll_fd; }
+int Server::getEpoll_fd() const { return this->_epoll_fd; }
 
 // struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
 // struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}
 
-//eli function
-std::string Server::servername(void) const 
+
+void Server::enableSendEvent(int epoll_fd, int fd_client)
 {
-	return ("MyircServer");
+    struct epoll_event epoll_v ;
+
+    epoll_v.events = EPOLLIN | EPOLLOUT;
+    epoll_v.data.fd = fd_client;
+
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD,fd_client,&epoll_v) < 0)
+        std::cerr << "Error on SendEvent" << std::endl; 
 }
+
+//eli function
+// std::string Server::servername(void) const 
+// {
+// 	return ("MyircServer");
+// }
