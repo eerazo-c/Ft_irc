@@ -15,6 +15,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
 #include <iterator>
 #include <algorithm>

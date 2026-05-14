@@ -193,6 +193,9 @@ void Server::setServer_address()
     this->_server_address.sin_addr.s_addr=INADDR_ANY;
     this->_server_address.sin_port = htons(getPort());
 }
+void Server::setIP(char *ip) { _ip = ip;}
+
+std::string Server::getIP() const { return (_ip);}
 std::string Server::getPass()const { return _password; }
 int Server::getPort() const{return _port_s;}
 int Server::getServer_socket() const{return _server_socket;}
