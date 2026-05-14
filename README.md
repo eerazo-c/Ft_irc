@@ -24,7 +24,7 @@ chat servers, and IRC applications work internally.
 
 `<Instructions>`
 
-#Compiling the project
+`<Compiling the project>`
 
 1. Clone the repository.
 2. Run `make` to compile the program.
@@ -40,7 +40,7 @@ chat servers, and IRC applications work internally.
 
 #Connecting with HexChat
 
-1. Open :contentReference[oaicite:2]{index=2}.
+1. Open HexChat 
 2. Create a new network.
 3. Connect using:
    `/server localhost 6667 password42`
@@ -51,7 +51,7 @@ chat servers, and IRC applications work internally.
 
 #Connecting with Irssi
 
-1. Open :contentReference[oaicite:3]{index=3}.
+1. Open Irssi
 2. Start the client using:
    `irssi`
 3. Connect to the server:
