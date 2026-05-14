@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
+/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/08 17:54:59 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/14 13:37:35 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,27 +19,18 @@
 
 Pass::~Pass(){}
 void Pass::execute(Client& client, std::vector<std::string> params, Server &server) const{
-    std::ostringstream oss;
-    std::string errorMsg;
-
     if (params.empty()){
-        oss << ":localhost 461 * PASS :Not enough parameters\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "PASS"));
         return;
     }
 
     if (client.getState() >= Client::PASS_ACCEPTED){
-        oss << ":localhost 462 * :You may not reregister\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_ALREADYREGISTERED(client.getNick()));
         return;
     }
 
     if (params[0] != server.getPass()){
-        oss << ":localhost 464 * :Password incorrect\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_PASSWORDINCORRECT(client.getNick()));
         return;
     }
 
@@ -49,16 +40,11 @@ void Pass::execute(Client& client, std::vector<std::string> params, Server &serv
 
 Nick::~Nick(){}
 void Nick::execute(Client& client, std::vector<std::string> params, Server &server) const{
-    std::ostringstream oss;
-    std::string errorMsg;
-
     if (client.getState() < Client::PASS_ACCEPTED)
         return;
 
     if (params.empty()){
-        oss << ":localhost 431 * :No nickname given\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_NONICKNAMEGIVEN(client.getNick()));
         return;
     }
 
@@ -74,9 +60,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
             continue;
         if (i != 0 && (isalnum(c) || c == '-'))
             continue;
-        oss << ":localhost 432 * " << nick << " :Erroneus nickname\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_ERRONEUSNICKNAME(client.getNick()));
         return;
     }
     
@@ -84,9 +68,7 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     std::map<int, Client *>::const_iterator it;
     for (it = clients.begin(); it != clients.end(); ++it){
         if (it->second->getNick() == nick){
-            oss << ":localhost 433 * " << nick << " :Nickname is already in use\r\n";
-            errorMsg = oss.str();
-            client.sendingBuff(errorMsg);
+            client.WritePrefix(ERR_NICKNAMEISALREADYINUSE(client.getNick()));
             return;
         }
     }
@@ -94,10 +76,9 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
     std::string oldNick = client.getNick(); 
     client.setNick(nick);
 
+    std::ostringstream oss;
     if (client.getState() == Client::REGISTERED) {
-        oss << ":" << oldNick << "!" << client.getUser() << "@127.0.0.1 NICK :" << nick << "\r\n";
-        std::string nickMsg = oss.str();
-        client.sendingBuff(nickMsg);
+        client.WritePrefix(RPL_CHANGENICK(oldNick, client.getUser(), client.getNick()));
 
         // (Nota para el futuro: Cuando tengas canales, también tendrás que enviarle 
         // este mismo mensaje a todas las personas que estén en los mismos canales 
@@ -106,15 +87,9 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 
     if (!client.getUser().empty() && !client.getRealName().empty() && client.getState() != Client::REGISTERED){
         client.setState(Client::REGISTERED);
-        std::string nick = client.getNick();
-        std::string user = client.getUser();
-        std::string host = "127.0.0.1";
-        
-        oss << ":localhost 001 " << nick << " :Welcome to the Internet Relay Network " 
-            << nick << "!" << user << "@" << host << "\r\n";
-            
-        std::string welcomeMsg = oss.str();
-        client.sendingBuff(welcomeMsg);
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), "127.0.0.1"));
+        std::string welcomeascii (IRC_WELCOME_MOTD);
+        client.sendingBuff(welcomeascii);
     }
 
     std::cout << "Nick execute: SUCCESS" << std::endl;
@@ -123,40 +98,27 @@ void Nick::execute(Client& client, std::vector<std::string> params, Server &serv
 User::~User(){}
 void User::execute(Client& client, std::vector<std::string> params, Server &server) const{
     (void)server;
-    std::ostringstream oss;
-    std::string errorMsg;
 
     if (client.getState() < Client::PASS_ACCEPTED)
         return;
 
     if (params.empty() || params.size() < 4 || params[0].empty() || params[3].empty()){
-        oss << ":localhost 461 * USER :Not enough parameters\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_NEEDMOREPARAMS(client.getNick(), "USER"));
         return;
     }
 
     if (client.getState() == Client::REGISTERED){
-        oss << ":localhost 462 * :You may not reregister\r\n";
-        errorMsg = oss.str();
-        client.sendingBuff(errorMsg);
+        client.WritePrefix(ERR_ALREADYREGISTERED(client.getNick()));
         return;
     }
 
     client.setUser(params[0]);
     client.setRealName(params[3]);
 
+    std::ostringstream oss;
     if (!client.getNick().empty()){
         client.setState(Client::REGISTERED);
-        std::string nick = client.getNick();
-        std::string user = client.getUser();
-        std::string host = "127.0.0.1";
-        
-        oss << ":localhost 001 " << nick << " :Welcome to the Internet Relay Network " 
-            << nick << "!" << user << "@" << host << "\r\n";
-            
-        std::string welcomeMsg = oss.str();
-        client.sendingBuff(welcomeMsg);
+        client.WritePrefix(RPL_WELCOME(client.getNick(), client.getUser(), "127.0.0.1"));
         std::string welcomeascii (IRC_WELCOME_MOTD);
         client.sendingBuff(welcomeascii);
     }
