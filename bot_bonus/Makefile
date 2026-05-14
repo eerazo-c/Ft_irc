@@ -1,20 +1,9 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/04/20 15:12:31 by elerazo-          #+#    #+#              #
-#    Updated: 2026/04/21 19:29:55 by nalesso          ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
 NAME		=	bot_irc
 CC			=	c++
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address -I inc/
 OBJDIR		=	build
 SRCSDIR		=	src
-SRCS		=	main.cpp Bot.cpp
+SRCS		=	main.cpp
 
 OBJS		=	$(addprefix $(OBJDIR)/, ${SRCS:.cpp=.o})
 DEPS		=   $(addprefix $(OBJDIR)/, ${SRCS:.cpp=.d})

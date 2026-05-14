@@ -12,7 +12,6 @@ class ChannelManager {
 	ChannelManager();
 	~ChannelManager();
 	
-//	Channel *Search(const std::string &name);
 	bool AddChannel(Channel &channel);
 	void RemoveChannel(Channel &channel);
 	bool Join(Client &client, const std::string &name);
@@ -20,12 +19,4 @@ class ChannelManager {
 		const std::string &reason);
 	
 	void partAll(Client &client);
-
-	/*
-	void Clean(void);
-	bool IsValidName(const std::string &name);
-	void Kick(Client *client, const std::string &nick,
-		const std::string &channelName, const std::string &reason);
-	*/
-
 };

@@ -21,8 +21,6 @@ class Client{
         AuthState _state;
         struct sockaddr_in _client_addr;
         socklen_t _addrlen;
-	//	bool _closing;
-
         std::string recivBuff;
         std::string sendBuff;
 
@@ -49,12 +47,10 @@ class Client{
         void setMesagge(const std::string& message);
         void setState(AuthState state);
         void setClient_addres();
-		//void set_closing(bool closing); //eli funtion
 
-		void WritePrefix(std::string const &_message); //eli funtion
-		void CloseClient(Server &server); //elifuntion
-
-        //isra epollwait
+		void WritePrefix(std::string const &_message);
+		void CloseClient(Server &server);
+        
         std::string &getSendBuff();
         void sendingBuff(const std::string& msg);
         void clearSendingBugg();

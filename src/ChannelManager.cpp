@@ -37,11 +37,3 @@ void ChannelManager::partAll(Client &client)
 	for (it = _channel.begin(); it != _channel.end(); ++it)
 		Part(client, it->first, "");
 }
-/*
-Channel *ChannelManager::Search(const std::string &name)
-{
-	std::map<std::string, Channel *>::iterator it = _channels.find(name);
-	if (it != _channels.end())
-		return (it->second);
-	return (0);
-}*/

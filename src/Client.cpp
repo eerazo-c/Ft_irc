@@ -60,22 +60,11 @@ void Client::WritePrefix(std::string const &_message)
 {
 	std::string msg = _message + "\r\n";
 
-	// (debug)
 	std::cout << "Buffer send: " <<  msg << std::endl;
 
-	//  cliente (HexChat) eli
-	//send(this->getFd(), msg.c_str(), msg.size(), 0);
-	//isra
-	this->sendingBuff(msg);// <-------- example de preguntar
+	this->sendingBuff(msg);
 
 }
-
-//eli funtion
-/*void Client::set_closing(bool closing)
-{
-	_closing = closing;
-}
-*/
 
 //eli funtion
 void Client::CloseClient(Server &server)
@@ -84,7 +73,6 @@ void Client::CloseClient(Server &server)
 	if (it != server.getClients().end())
 	{
 		Client *client(it->second);
-		//client->set_closing(true);
 		std::cout << &client << "ERROR :Closing connection: " + _message << std::endl;
 		std::cout << "Connection " << _fd << " closed: " << _message << std::endl;
 	}
