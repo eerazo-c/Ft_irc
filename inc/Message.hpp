@@ -6,7 +6,7 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 17:31:15 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 16:12:23 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/14 17:00:29 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,11 @@
 #define RPL_WELCOME(nick, user, host) "001 " + (nick) + " :Welcome to the INEA Network, " + (nick) + "!" + (user) + "@" + (host)
 #define RPL_YOURHOST(nick, server) "002 " + (nick) + " :Your host is " + (server) + "running version IRC42"
 #define RPL_CREATED(nick, datetime) "003 " + (nick) + " :This server was created" + (datetime)
-#define RPL_MYINFO(nick, server) "004 " + (nick) + (server)
-#define RPL_UMODEIS(nick, modes) "221 " +  (nick) + (modes)
+#define RPL_MYINFO(nick, server) "004 " + (nick) + " " + (server)
+#define RPL_UMODEIS(nick, modes) "221 " +  (nick) + " " + (modes)
 
 
-#define RPL_CHANNELMODEIS(client, channel, modes) "324 " +  (client) + (channel) + (modes)
+#define RPL_CHANNELMODEIS(client, channel, modes) "324 " +  (client) + " " + (channel) + (modes)
 #define RPL_NOTOPIC(nick, channel) "331 " + (nick) + (channel) + " :No topic is set"
 #define RPL_TOPIC(nick, channel, topic) "332 " + (nick) + " " + (channel) + "  :" + (topic)
 
@@ -33,7 +33,7 @@
 #define RPL_ENDOFNAMES() "366 " + (client) + (channel) + " :End of /NAMES list"
 
 // Errores
-#define ERR_NOSUCHNICK(nick, target) "401 " + (nick) + (target) + " :No such nick/channel"
+#define ERR_NOSUCHNICK(nick, target) "401 " + (nick) + " " + (target) + " :No such nick/channel"
 #define ERR_NOSUCHCHANNEL(nick, channel) "403 " + (nick) + (channel) + " :No such channel"
 #define ERR_NOCREATEHAS(nick, channel) "403 " + (nick) +  " " + (channel) + " :You can't create channel without #"
 #define ERR_CANNOTSENDTOCHAN(nick, channel) "404 " + (nick) + (channel) + " :Cannot send to channel"
