@@ -24,13 +24,13 @@ chat servers, and IRC applications work internally.
 
 `<Instructions>`
 
-`#Compiling the project`
+#Compiling the project
 
 1. Clone the repository.
 2. Run `make` to compile the program.
 3. An executable called `ircserv` will be generated.
 
-`#Running the server`
+#Running the server
 
 1. Run the server with:
    `./ircserv <port> <password>`
