@@ -9,17 +9,7 @@
 /*   Updated: 2026/05/11 19:47:58 by elerazo-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include <iostream>
-#include <string>
-#include <vector>
-#include <cstring>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <ctime>
-#include <fcntl.h>
+#include "header_client.hpp"
 
 void send_irc_cmd(int sock, std::string cmd) 
 {
