@@ -1,24 +1,5 @@
 #include "header.hpp"
 
-//std::map<int, Client> clients;
-
-// int  setNonBlockingT(int fd)
-// {
-//     int flags; 
-//     while ((flags = fcntl(fd, F_GETFL, 0)) == -1)
-//     {
-//         if (errno != EINTR)
-//             return -1;
-//     }
-//     while (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-//         if (errno != EINTR)  
-//             return -1;
-//     }
-//     return 1;
-// }
-
-
-
 int main(int ar, char const *argv[])
 {
     if(check_args(ar , argv[1], argv[2]) == -1)
@@ -27,7 +8,7 @@ int main(int ar, char const *argv[])
     std::string in_password (argv[2]);
     Server irccserver (std::atoi(argv[1]), in_password, "INEA_ecuatorial");
     std::memset(&(irccserver.getServer_address()), 0, sizeof(irccserver.getServer_address()));
-    // test ip
+
     char hostaname[256];
     if (gethostname(hostaname,sizeof(hostaname)) == -1)
     {
@@ -40,7 +21,7 @@ int main(int ar, char const *argv[])
         return 1;
     }
     char *ip_loc = inet_ntoa(*((struct in_addr*)host_e->h_addr_list[0]));
-    // test end
+
     try
     {    
         irccserver.setServer_address();
@@ -56,8 +37,6 @@ int main(int ar, char const *argv[])
         return 1;
     }
     
-    //////////////////////////
-    // prueba del epoll()
     int epoll_fd = epoll_create1(0);
     if (epoll_fd < 0)
     {
@@ -69,8 +48,8 @@ int main(int ar, char const *argv[])
     irccserver.setEpoll_fd(epoll_fd);
     
     struct epoll_event event_epoll , events_epoll[10];
-    event_epoll.events = EPOLLIN; // Avisar cuando haya datos de entrada (nuevas conexiones)
-    event_epoll.data.fd = irccserver.getServer_socket();   // Asociar nuestro socket principal
+    event_epoll.events = EPOLLIN;
+    event_epoll.data.fd = irccserver.getServer_socket();
     if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, irccserver.getServer_socket(), &event_epoll)< 0)
     {
         std::cerr << "Error in epoll_ctl" << std::endl;
@@ -94,11 +73,8 @@ int main(int ar, char const *argv[])
         {
             if (events_epoll[i].data.fd == irccserver.getServer_socket())
             {
-				//aqui la modificacion
                 Client *nclient = new Client();
-//				irccserver.addClient(new_socket, nclient);
                 nclient->getAddressLen() = sizeof (struct sockaddr_in);
-
                 int new_socket = accept(irccserver.getServer_socket(),
                  (struct sockaddr *)&nclient->getClient_addres(),
                   &nclient->getAddressLen());
@@ -110,38 +86,27 @@ int main(int ar, char const *argv[])
                     std::cerr << "Error in accept" << std::endl;
                     break;
                 }
-
-				nclient->setFd(new_socket);  //FALTABA
-
+				nclient->setFd(new_socket);
                 if (irccserver.setNonBlocking_socket(new_socket) == -1)
                 {
                     std::cerr << "Error al fcntl 2" << std::endl;
                     break;
                 }
-                
                 irccserver.addClient(new_socket,nclient);
-
                 struct epoll_event new_event_c;
                 new_event_c.events = EPOLLIN;
                 new_event_c.data.fd = new_socket;
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_socket, &new_event_c);
                 std::cout << "Nuevo cliente conectado y vigilado." << std::endl;
-
             } 
             else 
             {
                 int client_fd = events_epoll[i].data.fd;
-                // antiguo
-                // Client *cli = irccserver.getClients()[client_fd];
-                // if (!cli)
-                //     continue;
-                //new
                 std::map<int, Client*>::iterator it;   
                 it = irccserver.getClients().find(client_fd);
                 if (it == irccserver.getClients().end())
                     continue;
                 Client* cli = it->second;
-                // end
                 if ( events_epoll[i].events & EPOLLIN)
                 {
                     char buffer[1024];
@@ -184,7 +149,7 @@ int main(int ar, char const *argv[])
                             if (errno != EAGAIN && errno != EWOULDBLOCK)
                             {
                                 epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-                                delete cli; // doubt   no se si deberia hacer esto
+                                delete cli;
                                 irccserver.getClients().erase(client_fd);
                                 close(client_fd);
                                 std::cout << YELLOW << "Error enviando, cliente desconectado" << RESET << std::endl;
@@ -192,7 +157,6 @@ int main(int ar, char const *argv[])
                             }
                             continue;
                         }
-                        //sendBuffer.erase(0, sent); // esto funciona lo de debajo aun no lo se
                         cli->clearSendingBugg();
                         sendBuffer = cli->getSendBuff();
                     }

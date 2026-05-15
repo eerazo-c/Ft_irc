@@ -63,23 +63,17 @@ Server::~Server()
     for (it = _commands.begin(); it != _commands.end(); ++it){
         delete it->second;
     }
-    // cerrar los fd de los clientes tambien
     close (_server_socket);
 }
 
 void Server::addClient(int fd, Client *client)
 {
-	//se modifico por que no conectaba los clientes.
-//	_clients[fd] = client;
 	if (fd != client->getFd())
 	{
 		std::cout << "ERROR: fd mismatch" << std::endl;
 		return;
 	}
 	_clients[fd] = client;
-/*    cliente->setFd(fd);
-    _clients.insert(std::pair<int, Client *>(fd, cliente));*/
-//	std::cout << "esntro aqui" << std::endl;
 }
 
 int Server::setNonBlocking_socket(int socket_s)
@@ -107,11 +101,9 @@ int Server::bindSocketToServer()
 {
     if (bind(getServer_socket(), (struct sockaddr *)&getServer_address(), sizeof(getServer_address())) < 0)
     {
-       // close()  fdsc
         close(getServer_socket());
         setServer_socket(-1);
         throw Server::Error_fd();
-        //return -1;
     }
     return 1;
 }
@@ -119,21 +111,12 @@ int Server::listenServer()
 {
    if (listen(getServer_socket(), MAX_CONECTIONS) < 0)
     {
-        //closee   
         close(getServer_socket());
         setServer_socket(-1);
         throw Server::Error_fd();
-       // return -1;
     }
     return 1;
 }
-// ya no lo necestiamos
-// int Server::sendhandshake(int client_fd)
-// {
-// 	//aqui modificamos la llamada desde el main esta comentada
-// 	//linea 138
-//     return (send(client_fd, "\n",2 , 0));
-// }
 
 void Server::handleClientData(Client& client, const std::string& tempBuffer, Parser& parser){
     client.setMesagge(client.getMessage() + tempBuffer);
@@ -156,23 +139,6 @@ void Server::executeCommand(Client& client, IrcMessage& message){
         it->second->execute(client, message.params, *this);
     }
 }
-
-//  void Server::setEpoll()
-//  {
-//     this->epoll_fd = epoll_create1(0);
-//     if (this->epoll_fd < 0)
-//     {
-//         throw("Error Epoll");
-//         close(this->getServer_socket());
-//     }
-//     this->s_event_epoll.events = EPOLLIN | EPOLLET;
-//     this->s_event_epoll.data.fd = this->getServer_socket();
-//     if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, this->getServer_socket(), &s_event_epoll)< 0)
-//     {
-//         throw("Error Epoll_ctl");
-//         close(this->getServer_socket());
-//     }
-//  }
 
 void Server::setPort(int port)
 {
@@ -206,10 +172,6 @@ const std::map<std::string, Command*>& Server::getCommands() const{ return _comm
 void Server::setEpoll_fd(int epoll_fd) { this->_epoll_fd = epoll_fd; }
 int Server::getEpoll_fd() const { return this->_epoll_fd; }
 
-// struct epoll_event* Server::getEventEpoll_s()  { return &s_event_epoll;}
-// struct epoll_event* Server::getEventsEpoll_m()  { return m_events_epoll;}
-
-
 void Server::enableSendEvent(int epoll_fd, int fd_client)
 {
     struct epoll_event epoll_v ;
@@ -220,9 +182,3 @@ void Server::enableSendEvent(int epoll_fd, int fd_client)
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD,fd_client,&epoll_v) < 0)
         std::cerr << "Error on SendEvent" << std::endl; 
 }
-
-//eli function
-// std::string Server::servername(void) const 
-// {
-// 	return ("MyircServer");
-// }

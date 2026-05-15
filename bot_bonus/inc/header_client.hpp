@@ -3,11 +3,15 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <ctime>
+#include <fcntl.h>
 
 
 #define RESET   "\033[0m"
@@ -43,11 +47,5 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */   
 
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */    
-
-
-//std::cout << RED << "hello world" << RESET << std::endl;                                                      
-//Note: If you don't use RESET the color will remain changed until the next time you use a color code.     
-
-
 
 #endif
