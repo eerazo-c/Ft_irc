@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
+/*   By: nalesso <nalesso@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/22 17:48:43 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 17:52:55 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/18 14:24:36 by nalesso          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -508,6 +508,7 @@ void Invite::execute(Client& client, std::vector<std::string> args, Server &serv
 	client.WritePrefix(RPL_INVITING(client.getNick(), channelName, targetNick));
 	target->WritePrefix(":" + client.getNick() + "!" + client.getUser()
 		+ "@localhost INVITE " + targetNick + " :" + channelName);
+    server.enableSendEvent(server.getEpoll_fd(), target->getFd());
 }
 
 Topic::~Topic()
