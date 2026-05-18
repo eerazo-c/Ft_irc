@@ -50,7 +50,6 @@ void Channel::addClient(Client &client)
 
 	if (isMember(client))
 		return;
-	//	_clients[client.getFd()] = &client;  merge eli
 	_clients.insert(std::make_pair(fd, &client));
 	if (firstClient)
 		setOperator(client, true);

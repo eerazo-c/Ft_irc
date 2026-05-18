@@ -35,7 +35,6 @@ class Server
 
         std::map<int ,Client *> _clients;
 
-		//canales eli add
 		std::map<std::string, Channel> _channels;        
 
         std::map<std::string, Command*> _commands;
@@ -54,7 +53,6 @@ class Server
         
         int bindSocketToServer();
         int listenServer();
-        //int sendhandshake(int client_fd);
 
         void handleClientData(Client& client , const std::string& tempBuffer, Parser& parser);
         void executeCommand(Client& client, IrcMessage& message);
@@ -78,16 +76,11 @@ class Server
         void setEpoll_fd(int epoll_fd);
         int getEpoll_fd() const;
 
-
-        // isra epoll  send solutions 
         void enableSendEvent(int epoll_fd, int fd_client);
 
-		//Canales eli add
 		std::map<std::string, Channel>& getChannels(){
 			return (_channels);
 		};
-
-		//std::string servername(void) const; //eli add
 
     class Error_fd : public std::exception
     {

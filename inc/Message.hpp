@@ -12,9 +12,6 @@
 
 #pragma once
 
-//networkname = servidor en 001
-
-//Bienvenida + info + se crean cosas
 #define RPL_WELCOME(nick, user, host) "001 " + (nick) + " :Welcome to the INEA Network, " + (nick) + "!" + (user) + "@" + (host)
 #define RPL_YOURHOST(nick, server) "002 " + (nick) + " :Your host is " + (server) + "running version IRC42"
 #define RPL_CREATED(nick, datetime) "003 " + (nick) + " :This server was created" + (datetime)

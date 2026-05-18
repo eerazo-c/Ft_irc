@@ -66,12 +66,6 @@
 
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */    
 
-//std::cout << RED << "hello world" << RESET << std::endl;                                                      
-//Note: If you don't use RESET the color will remain changed until the next time you use a color code.     
-
-
-#define IRC_AUTOR "Elerazo  Israetor"
-
 #define IRC_WELCOME_MOTD \
 " __      __      .__                                 __          \n" \
 "/  \\    /  \\ ____ |  |   ____  ____   _____   ____   _/  |_  ____ \n" \
@@ -86,7 +80,6 @@
 "   \\____/|____/ |__|         |___|   |____|_  /   \\______  /      \n" \
 "                                            \\/           \\/       \n"
 
-//AUXILIAR
 void wrong_args();
 int check_args(int n, const char *port, const char* password);
 void ft_message(std::string s, const char *color , int end_line);
