@@ -6,7 +6,7 @@
 /*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 18:07:30 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/14 18:25:07 by arhea            ###   ########.fr       */
+/*   Updated: 2026/05/18 19:32:34 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,12 @@ class Server
         
         Server(int port, std::string &password, const char *serverN);
         ~Server();
+
+        void start();
+        void run();
+        void handleNewConnection();
+        void handleClientActivity(int client_fd, uint32_t events, Parser& parser);
+        void disconnectClient(int client_fd);
 
         int setNonBlocking_socket(int socket_s);
         
