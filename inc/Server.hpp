@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: arhea <arhea@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 18:07:30 by elerazo-          #+#    #+#             */
-/*   Updated: 2026/05/02 18:07:51 by elerazo-         ###   ########.fr       */
+/*   Updated: 2026/05/14 18:25:07 by arhea            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
